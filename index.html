@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Simulado Saúde do Trabalhador (Mobile)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Otimizações para toque e ecrãs móveis (iOS/Android) */
+    body {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .touch-btn:active {
+      transform: scale(0.98);
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col antialiased transition-colors duration-300">
+
+  <!-- Header Fixo Topo -->
+  <header class="bg-indigo-900 dark:bg-slate-950 text-white shadow-md sticky top-0 z-50 px-4 py-3 border-b dark:border-slate-800">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <div class="flex items-center space-x-2.5">
+        <i class="fa-solid fa-notes-medical text-xl text-teal-400"></i>
+        <div>
+          <h1 class="text-base font-bold leading-tight">Saúde do Trabalhador</h1>
+          <p class="text-[10px] text-indigo-200 dark:text-slate-400">100 Questões • Preparatório</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <!-- Estatísticas do Quiz (quando ativo) -->
+        <div id="quiz-stats" class="hidden flex items-center space-x-2 text-xs font-semibold">
+          <div class="text-center bg-indigo-950/60 dark:bg-slate-900 px-2 py-1 rounded-lg border border-indigo-700/50 dark:border-slate-800">
+            <span class="block text-[8px] text-indigo-300 dark:text-slate-400 uppercase">Progresso</span>
+            <span id="stat-progress" class="text-indigo-100 text-xs">0/100</span>
+          </div>
+          <div class="text-center bg-indigo-950/60 dark:bg-slate-900 px-2 py-1 rounded-lg border border-indigo-700/50 dark:border-slate-800">
+            <span class="block text-[8px] text-teal-300 uppercase">Acertos</span>
+            <span id="stat-score" class="text-teal-400 text-xs">0</span>
+          </div>
+        </div>
+
+        <!-- Botão Alternador Modo Claro / Escuro -->
+        <button id="theme-toggle" onclick="toggleTheme()" class="touch-btn p-2 rounded-xl bg-indigo-800 dark:bg-slate-800 text-amber-300 dark:text-amber-400 hover:bg-indigo-700 dark:hover:bg-slate-700 transition flex items-center justify-center border border-indigo-700 dark:border-slate-700" aria-label="Alternar Tema">
+          <i id="theme-toggle-dark-icon" class="fa-solid fa-moon text-sm hidden"></i>
+          <i id="theme-toggle-light-icon" class="fa-solid fa-sun text-sm hidden"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal com Máximo Largura Mobile -->
+  <main class="flex-grow max-w-md mx-auto w-full px-3 py-4 flex flex-col justify-start">
+    
+    <!-- Tela 1: Dashboard / Seleção de Módulo -->
+    <div id="screen-dashboard" class="space-y-4">
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Banco de Questões</h2>
+        <p class="text-xs text-slate-600 dark:text-slate-300 mb-4">
+          Escolha um tema específico para praticar ou faça o simulado completo com 100 questões.
+        </p>
+
+        <!-- Lista Vertical Otimizada para Celular -->
+        <div class="space-y-2.5 mb-5">
+          
+          <div onclick="selectModule('all')" id="card-mod-all" class="module-card touch-btn p-3.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/60 dark:bg-indigo-950/40 cursor-pointer transition">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="p-2 bg-indigo-600 text-white rounded-lg text-xs"><i class="fa-solid fa-layer-group"></i></span>
+                <div>
+                  <h3 class="font-bold text-slate-900 dark:text-white text-sm">Simulado Completo</h3>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">Todas as 100 questões</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/80 text-indigo-800 dark:text-indigo-200 rounded-full">100 Q</span>
+            </div>
+          </div>
+
+          <div onclick="selectModule(1)" id="card-mod-1" class="module-card touch-btn p-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer transition">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="p-2 bg-teal-500 text-white rounded-lg text-xs"><i class="fa-solid fa-file-contract"></i></span>
+                <div>
+                  <h3 class="font-bold text-slate-900 dark:text-white text-sm">1. Normas Regulamentadoras</h3>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">NR-1, NR-4, NR-5, NR-7, NR-17, NR-32, NR-38</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full">20 Q</span>
+            </div>
+          </div>
+
+          <div onclick="selectModule(2)" id="card-mod-2" class="module-card touch-btn p-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer transition">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="p-2 bg-amber-500 text-white rounded-lg text-xs"><i class="fa-solid fa-virus"></i></span>
+                <div>
+                  <h3 class="font-bold text-slate-900 dark:text-white text-sm">2. Doenças e Agravos</h3>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">DART, LER/DORT, PAIR, Intoxicações</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full">20 Q</span>
+            </div>
+          </div>
+
+          <div onclick="selectModule(3)" id="card-mod-3" class="module-card touch-btn p-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer transition">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="p-2 bg-blue-500 text-white rounded-lg text-xs"><i class="fa-solid fa-person-running"></i></span>
+                <div>
+                  <h3 class="font-bold text-slate-900 dark:text-white text-sm">3. Ergonomia e Toxicologia</h3>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">Biomecânica, Cargas, VET/LT, IBE</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full">15 Q</span>
+            </div>
+          </div>
+
+          <div onclick="selectModule(4)" id="card-mod-4" class="module-card touch-btn p-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer transition">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="p-2 bg-purple-500 text-white rounded-lg text-xs"><i class="fa-solid fa-building-user"></i></span>
+                <div>
+                  <h3 class="font-bold text-slate-900 dark:text-white text-sm">4. Contexto Organizacional</h3>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">Burnout, Assédio, Liderança, ESG</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full">15 Q</span>
+            </div>
+          </div>
+
+          <div onclick="selectModule(5)" id="card-mod-5" class="module-card touch-btn p-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer transition">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="p-2 bg-rose-500 text-white rounded-lg text-xs"><i class="fa-solid fa-hospital-user"></i></span>
+                <div>
+                  <h3 class="font-bold text-slate-900 dark:text-white text-sm">5. RENAST, CEREST e INSS</h3>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">SINAN, Notificação, CAT, B31/B91</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full">15 Q</span>
+            </div>
+          </div>
+
+          <div onclick="selectModule(6)" id="card-mod-6" class="module-card touch-btn p-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer transition">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="p-2 bg-emerald-500 text-white rounded-lg text-xs"><i class="fa-solid fa-lungs"></i></span>
+                <div>
+                  <h3 class="font-bold text-slate-900 dark:text-white text-sm">6. Silicose e Asbestos</h3>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">Pneumoconioses, STF Amianto, Schilling</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full">15 Q</span>
+            </div>
+          </div>
+
+        </div>
+
+        <button onclick="startQuiz()" class="touch-btn w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm">
+          <span>Iniciar Treinamento</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tela 2: Aplicação do Quiz -->
+    <div id="screen-quiz" class="hidden space-y-3">
+      
+      <!-- Barra de Progresso Compacta -->
+      <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+        <div class="flex justify-between items-center text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-1.5">
+          <span id="question-module-tag" class="text-indigo-600 dark:text-indigo-400 uppercase tracking-wider truncate max-w-[200px]">Módulo 1</span>
+          <span id="question-number-display">1 de 100</span>
+        </div>
+        <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+          <div id="progress-bar-fill" class="bg-indigo-600 dark:bg-indigo-500 h-full w-0 transition-all duration-300"></div>
+        </div>
+      </div>
+
+      <!-- Caixa da Questão -->
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+        <h3 id="question-text" class="text-sm font-bold text-slate-900 dark:text-white mb-4 leading-relaxed">
+          Carregando questão...
+        </h3>
+
+        <!-- Opções com Toque Amplo -->
+        <div id="options-container" class="space-y-2.5 mb-4">
+          <!-- Gerado dinamicamente -->
+        </div>
+
+        <!-- Dica de Estudo -->
+        <div id="hint-container" class="hidden mb-4 p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl text-amber-900 dark:text-amber-200 text-xs flex items-start space-x-2">
+          <i class="fa-solid fa-lightbulb text-amber-500 text-sm mt-0.5 flex-shrink-0"></i>
+          <div>
+            <strong class="font-bold">Dica:</strong>
+            <span id="hint-text">...</span>
+          </div>
+        </div>
+
+        <!-- Explicação / Justificativa -->
+        <div id="rationale-container" class="hidden p-4 rounded-xl border mb-4 text-xs">
+          <div id="rationale-header" class="font-bold text-sm mb-1.5 flex items-center space-x-1.5"></div>
+          <div id="rationale-body" class="space-y-1 text-slate-700 dark:text-slate-300 leading-relaxed"></div>
+        </div>
+
+        <!-- Botões de Ação na Parte Inferior -->
+        <div class="flex justify-between items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+          <button id="btn-hint" onclick="toggleHint()" class="touch-btn px-3.5 py-2 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium transition flex items-center space-x-1.5">
+            <i class="fa-regular fa-lightbulb text-amber-500"></i>
+            <span>Dica</span>
+          </button>
+
+          <button id="btn-next" onclick="nextQuestion()" class="touch-btn hidden w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition flex items-center justify-center space-x-2 text-xs">
+            <span>Próxima Questão</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tela 3: Diagnóstico de Desempenho -->
+    <div id="screen-report" class="hidden space-y-4">
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 text-center transition-colors">
+        
+        <div class="inline-flex p-3 bg-indigo-50 dark:bg-indigo-950/60 rounded-full text-indigo-600 dark:text-indigo-400 mb-2">
+          <i class="fa-solid fa-chart-pie text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-extrabold text-slate-900 dark:text-white">Resultado do Simulado</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Análise do seu rendimento por módulo</p>
+
+        <!-- Métricas Rápidas -->
+        <div class="grid grid-cols-3 gap-2 mb-5">
+          <div class="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+            <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase block">Aproveitamento</span>
+            <div id="report-percentage" class="text-base font-extrabold text-indigo-600 dark:text-indigo-400 mt-0.5">0%</div>
+          </div>
+          <div class="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+            <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase block">Acertos</span>
+            <div id="report-correct" class="text-base font-extrabold text-teal-600 dark:text-teal-400 mt-0.5">0 / 0</div>
+          </div>
+          <div class="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+            <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase block">Tempo/Q</span>
+            <div id="report-time" class="text-base font-extrabold text-amber-600 dark:text-amber-400 mt-0.5">--</div>
+          </div>
+        </div>
+
+        <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200 mb-3 text-left flex items-center space-x-1.5">
+          <i class="fa-solid fa-list-check text-indigo-600 dark:text-indigo-400"></i>
+          <span>Desempenho por Tema:</span>
+        </h3>
+
+        <!-- Lista de Desempenho por Módulo -->
+        <div id="module-breakdown-list" class="space-y-2.5 text-left mb-5">
+          <!-- Preenchido via JS -->
+        </div>
+
+        <!-- Plano de Revisão -->
+        <div class="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 p-3.5 rounded-xl text-left">
+          <h4 class="font-bold text-indigo-900 dark:text-indigo-200 text-xs mb-1.5 flex items-center space-x-1.5">
+            <i class="fa-solid fa-compass text-indigo-600 dark:text-indigo-400"></i>
+            <span>Plano de Revisão Sugerido</span>
+          </h4>
+          <ul id="recommendations-list" class="space-y-1.5 text-[11px] text-indigo-950 dark:text-indigo-200 list-disc list-inside leading-relaxed">
+            <!-- Preenchido via JS -->
+          </ul>
+        </div>
+
+        <button onclick="resetToDashboard()" class="touch-btn w-full mt-5 py-3 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold rounded-xl text-xs shadow transition">
+          Voltar ao Menu Inicial
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // --- GESTÃO DE TEMA (MODO CLARO / ESCURO) ---
+    const darkIcon = document.getElementById('theme-toggle-dark-icon');
+    const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+    function initTheme() {
+      if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        lightIcon.classList.remove('hidden');
+        darkIcon.classList.add('hidden');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        darkIcon.classList.remove('hidden');
+        lightIcon.classList.add('hidden');
+      }
+    }
+
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        localStorage.setItem('color-theme', 'light');
+        darkIcon.classList.remove('hidden');
+        lightIcon.classList.add('hidden');
+      } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        localStorage.setItem('color-theme', 'dark');
+        lightIcon.classList.remove('hidden');
+        darkIcon.classList.add('hidden');
+      }
+
+      // Re-renderizar opções atuais caso a questão esteja sendo respondida para aplicar bordas escuras
+      if(!screens.quiz.classList.contains('hidden') && userAnswers.length > currentIndex) {
+        // Questão já respondida
+      }
+    }
+
+    initTheme();
+
+    // --- BANCO COM AS 100 QUESTÕES COMPLETA ---
+    const rawQuestions = [
+      // === MÓDULO 1: NORMAS REGULAMENTADORAS (20 QUESTÕES) ===
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "Com a modernização das normas trabalhistas e a alteração da NR-1, o Programa de Prevenção de Riscos Ambientais (PPRA/NR-9) foi substituído pelo Programa de Gerenciamento de Riscos (PGR). Assinale a alternativa correta sobre o PGR:",
+        options: [
+          "Deve englobar apenas riscos físicos, químicos e biológicos em sua estrutura.",
+          "É composto obrigatoriamente pelo Inventário de Riscos Ocupacionais e pelo Plano de Ação.",
+          "Substitui a necessidade de elaboração do PCMSO (NR-7) nas empresas grau de risco 3 e 4.",
+          "Deve ser renovado anualmente de forma compulsória, independente de alterações no ambiente."
+        ],
+        answer: 1,
+        hint: "O PGR tem dois documentos estruturantes obrigatórios segundo a NR-1.",
+        rationale: "O PGR é constituído pelo Inventário de Riscos Ocupacionais e pelo Plano de Ação (NR-1.5.7). Ele engloba riscos físicos, químicos, biológicos, ergonômicos e de acidentes. Sua reavaliação ocorre a cada 2 anos (ou 3 anos para empresas com certificação em SGI)."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "A NR-4 estabelece os critérios para dimensionamento do SESMT. Qual par de variáveis é determinante para definir a quantidade e titulação dos profissionais exigidos?",
+        options: [
+          "Faturamento bruto anual da empresa e número de filiais.",
+          "Grau de Risco da atividade principal e quantidade total de empregados.",
+          "Número de acidentes registrados no ano anterior e cota de PCDs.",
+          "Insalubridade média do setor e exigência de adicional de periculosidade."
+        ],
+        answer: 1,
+        hint: "Consulte a Tabela I e II da NR-4.",
+        rationale: "O dimensionamento do SESMT depende exclusivamente do Grau de Risco do estabelecimento (Classificação CNAE de 1 a 4) e do número total de trabalhadores no estabelecimento."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "Sobre a Comissão Interna de Prevenção de Acidentes e Assédio (CIPA - NR-5), assinale a afirmativa correta:",
+        options: [
+          "É composta exclusivamente por membros eleitos pelos trabalhadores em votação secreta.",
+          "O presidente da CIPA é designado pelo empregador e o vice-presidente é escolhido pelos empregados.",
+          "A CIPA é obrigatória para todos os estabelecimentos comerciais, independentemente do número de funcionários.",
+          "O mandato dos membros eleitos da CIPA tem duração de dois anos, sendo vedada qualquer reeleição."
+        ],
+        answer: 1,
+        hint: "Considere a paridade na composição e a indicação da liderança da comissão.",
+        rationale: "Na CIPA, o empregador designa o Presidente entre seus representantes, enquanto os representantes dos empregados escolhem o Vice-Presidente entre os membros eleitos."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "A NR-6 regulamenta os Equipamentos de Proteção Individual (EPI). De acordo com a norma, é obrigação do EMPREGADOR:",
+        options: [
+          "Comprar apenas EPIs aprovados pelo órgão nacional competente e com Certificado de Aprovação (CA) válido.",
+          "Responsabilizar-se pela guarda, higienização diária e conservação do EPI de uso pessoal.",
+          "Fornecer o EPI mediante cobrança com desconto de no máximo 10% na folha do trabalhador.",
+          "Exigir o uso do EPI em substituição definitiva às medidas de proteção coletiva."
+        ],
+        answer: 0,
+        hint: "Pense na gratuidade e nos requisitos legais comerciais do equipamento.",
+        rationale: "O empregador deve fornecer o EPI adequado gratuitamente, exigindo CA válido. A guarda e conservação são deveres do empregado (NR-6.7.2). A proteção coletiva (EPC) antecede a individual."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "De acordo com a NR-7 (PCMSO), qual dos exames médicos ocupacionais abaixo possui prazo legal específico atrelado ao retorno ao trabalho?",
+        options: [
+          "Exame de retorno para trabalhador ausente por 30 dias ou mais por motivo de doença ou acidente.",
+          "Exame admissional realizado até 15 dias após o início efetivo do contrato laborativo.",
+          "Exame demissional obrigatoriamente realizado até 30 dias após o desligamento do funcionário.",
+          "Exame periódico bienal compulsório para trabalhadores expostos a riscos grau 4."
+        ],
+        answer: 0,
+        hint: "Verifique o tempo mínimo de afastamento que exige a avaliação de aptidão pré-retorno.",
+        rationale: "O exame de retorno ao trabalho deve ser realizado obrigatoriamente antes que o empregado volte às funções, quando ausente por período igual ou superior a 30 dias por motivo de doença ou acidente (ocupacional ou não)."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "A NR-9 trata da avaliação e controle das exposições ocupacionais a agentes físicos, químicos e biológicos. Ela atua como:",
+        options: [
+          "O documento legalizador único para substituição do laudo de insalubridade.",
+          "Norma técnica de suporte que orienta metodologias de avaliação e medidas de controle para o PGR.",
+          "Diretriz exclusiva aplicável ao setor hospitalar e serviços de saúde.",
+          "Regulamento para concessão imediata do adicional de periculosidade aos eletricistas."
+        ],
+        answer: 1,
+        hint: "A NR-9 não é mais um programa isolado (antigo PPRA), mas sim um instrumento de suporte.",
+        rationale: "Após o envio do PPRA para a história em 2022, a NR-9 tornou-se uma norma estritamente técnica com critérios para avaliação e controle de agentes ambientais integrados ao PGR (NR-1)."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "Na NR-10 (Segurança em Instalações e Serviços em Eletricidade), estabelece-se a exigência do Prontuário de Instalações Elétricas (PIE) para estabelecimentos com carga instalada superior a:",
+        options: [
+          "30 kW.",
+          "50 kW.",
+          "75 kW.",
+          "100 kW."
+        ],
+        answer: 2,
+        hint: "Lembre-se do valor limite em quilowatts estipulado no item 10.2.4.",
+        rationale: "Os estabelecimentos com carga instalada superior a 75 kW devem manter e estruturar o Prontuário de Instalações Elétricas (PIE) atualizado."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "A caracterização da Insalubridade (NR-15) difere da Periculosidade (NR-16) quanto à natureza do adicional salarial. Assinale a correlação correta:",
+        options: [
+          "Insalubridade incide sobre o salário-base; Periculosidade sobre o salário mínimo regional.",
+          "Insalubridade varia de 10%, 20% a 40% do salário mínimo; Periculosidade é de 30% sobre o salário-base.",
+          "Insalubridade gera valor fixo de 30% no salário mínimo; Periculosidade é graduada conforme o risco.",
+          "Ambos os adicionais incidem exclusivamente no rendimento bruto total excluídas horas extras."
+        ],
+        answer: 1,
+        hint: "Atente para os percentuais de 10/20/40% versus o percentual único de 30%.",
+        rationale: "A Insalubridade (NR-15) gera adicional de 10% (mínimo), 20% (médio) ou 40% (máximo) sobre o Salário Mínimo nacional. A Periculosidade (NR-16) concede 30% sem os acréscimos resultantes de gratificações sobre o Salário-Base do trabalhador."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "Qual Norma Regulamentadora foi recém-aprovada para estabelecer diretrizes de segurança e saúde específicas para os trabalhadores da Limpeza Urbana e Manejo de Resíduos Sólidos?",
+        options: [
+          "NR-36",
+          "NR-37",
+          "NR-38",
+          "NR-39"
+        ],
+        answer: 2,
+        hint: "Norma regulamentadora que entrou em vigor recentemente para proteger garis e coletores de lixo.",
+        rationale: "A NR-38 regulamenta a Segurança e Saúde no Trabalho nas Atividades de Limpeza Urbana e Manejo de Resíduos Sólidos, abrangendo vacinação, pontos de apoio e ergonomia da coleta."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "A NR-17 estabelece parâmetros para adaptação das condições de trabalho às características psicofisiológicas dos trabalhadores. O documento ergonômico obrigatório no PGR chama-se:",
+        options: [
+          "Laudo Biomecânico Funcional (LBF).",
+          "Análise Ergonômica do Trabalho (AET) e Avaliação Ergonômica Preliminar (AEP).",
+          "Programa de Reabilitação Ocupacional e Ergonômica (PROE).",
+          "Plano de Ajuste Postural Contínuo (PAPC)."
+        ],
+        answer: 1,
+        hint: "A norma prevê duas etapas: a identificação inicial rápida (AEP) e o estudo aprofundado (AET).",
+        rationale: "Conforme a NR-17 atualizada, a organização deve realizar a Avaliação Ergonômica Preliminar (AEP) e, quando indicada necessidade de aprofundamento, a Análise Ergonômica do Trabalho (AET)."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "A respeito das Condições Sanitárias e de Conforto nos Locais de Trabalho (NR-24), é INCORRETO afirmar:",
+        options: [
+          "Vestiários são obrigatórios em atividades que exijam o uso de uniformes ou trocas de roupas.",
+          "Instalações sanitárias devem possuir separação por sexo e manter perfeitas condições de higiene.",
+          "É permitido o armazenamento de alimentos de uso pessoal junto a produtos tóxicos nos armários.",
+          "Os locais para refeição devem ser dimensionados garantindo conforto e lavatório nas proximidades."
+        ],
+        answer: 2,
+        hint: "Identifique a conduta incompatível com a biossegurança e higiene alimentar.",
+        rationale: "A NR-24 proíbe estritamente a guarda de alimentos junto a substâncias tóxicas, poeiras ou produtos de limpeza, exigindo compartimentos separados."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "Na NR-32 (Serviços de Saúde), qual conduta é VEDADA aos trabalhadores nos postos de trabalho com risco de exposição biológica?",
+        options: [
+          "Higienização de mãos antes e após contato com pacientes.",
+          "Consumo de alimentos e bebidas, bem como o uso de adornos no posto de trabalho.",
+          "Vacinação contra Hepatite B, Tétano e Difteria oferecida gratuitamente.",
+          "Uso de sapatos fechados de material resistente a perfuração e líquidos."
+        ],
+        answer: 1,
+        hint: "Lembre-se das regras fundamentais de biossegurança nos setores assistenciais.",
+        rationale: "A NR-32.2.4.5 proíbe expressamente o consumo de alimentos/bebidas, guarda de alimentos, manuseio de lentes de contato, aplicação de cosméticos e o uso de adornos em locais com exposição biológica."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "Microempresas (ME) e Empresas de Pequeno Porte (EPP) de Grau de Risco 1 e 2 estão dispensadas da elaboração do PGR desde que:",
+        options: [
+          "Tenham até 5 empregados registrados.",
+          "Declarem a ausência de exposições a agentes físicos, químicos e biológicos e não possuam riscos ergonômicos graves.",
+          "Assinem termo de compromisso de ausência de acidentes de trabalho com o sindicato laboral.",
+          "Paguem seguro privado de saúde ocupacional para todos os funcionários."
+        ],
+        answer: 1,
+        hint: "A dispensa do PGR na NR-1 baseia-se no porte, grau de risco e na declaração de ausência de riscos ambientais.",
+        rationale: "As ME e EPP graus de risco 1 e 2 que declararem no sistema oficial a ausência de agentes físicos, químicos e biológicos ficam dispensadas de elaborar o PGR."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "Em relação à NR-2 (Inspeção Prévia) e NR-27 (Registro Profissional do Técnico de Segurança), o que ocorreu na legislação brasileira recente?",
+        options: [
+          "Ambas foram revogadas no processo de desburocratização das normas trabalhistas.",
+          "Foram unificadas dentro do texto principal da NR-1.",
+          "Tiveram suas sanções triplicadas pela Portaria 3.214/78.",
+          "A NR-2 tornou-se obrigatória apenas para indústrias farmacêuticas."
+        ],
+        answer: 0,
+        hint: "Foram extintas para modernização e redução de burocracia governamental.",
+        rationale: "A NR-2 (Inspeção Prévia) e a NR-27 (Registro Profissional dos Técnicos de Segurança no MTE) foram revogadas oficialmente (NR-2 em 2019 e NR-27 em 2008) para modernizar as rotinas regulatórias."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "Qual profissional legalmente habilitado é o responsável pela coordenação e elaboração do PCMSO de acordo com a NR-7?",
+        options: [
+          "Engenheiro de Segurança do Trabalho.",
+          "Médico do Trabalho.",
+          "Enfermeiro do Trabalho registrado na CIPA.",
+          "Técnico em Segurança do Trabalho ou Ergonomista graduado."
+        ],
+        answer: 1,
+        hint: "Trata-se do programa de vigilância médica ocupacional da empresa.",
+        rationale: "O PCMSO deve ser elaborado e formalmente assinado por um Médico do Trabalho especialista (ou médico indicado em localidades sem especialista, conforme exceções da norma)."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "Conforme a NR-15, o limite de tolerância para ruído contínuo ou intermitente para uma jornada de 8 horas diárias de trabalho é de:",
+        options: [
+          "75 dBA.",
+          "80 dBA.",
+          "85 dBA.",
+          "90 dBA."
+        ],
+        answer: 2,
+        hint: "Valor de referência internacional para a jornada padrão de 8 horas no Anexo 1.",
+        rationale: "A NR-15, Anexo nº 1, fixa o limite máximo de exposição permissível para ruído contínuo ou intermitente em 85 dBA para 8 horas diárias de trabalho."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "A NR-33 regulamenta os trabalhos em Espaços Confinados. O documento obrigatório emitido antes de cada entrada em espaço confinado é denominado:",
+        options: [
+          "Atestado de Liberação Operacional (ALO).",
+          "Permissão de Entrada e Trabalho (PET).",
+          "Ordem de Serviço Específica de Risco (OSER).",
+          "Certificado de Isenção de Agentes Gasosos (CIAG)."
+        ],
+        answer: 1,
+        hint: "Iniciais PET.",
+        rationale: "A Permissão de Entrada e Trabalho (PET) é o documento impresso exigido pela NR-33, preenchido e assinado pelo Supervisor de Entrada antes do ingresso nos espaços confinados."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "De acordo com a NR-35 (Trabalho em Altura), considera-se trabalho em altura toda atividade executada acima de qual nível inferior com risco de queda?",
+        options: [
+          "1,50 metro.",
+          "1,80 metro.",
+          "2,00 metros.",
+          "2,50 metros."
+        ],
+        answer: 2,
+        hint: "Limite métrico padrão em todo o território nacional.",
+        rationale: "A NR-35.1.2 estabelece que se considera trabalho em altura toda atividade executada acima de 2,00 m (dois metros) do nível inferior, onde haja risco de queda."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "O adicional de periculosidade de acordo com a NR-16 é devido aos trabalhadores em operações perigosas com:",
+        options: [
+          "Exposição continuada a ruído acima de 90 dB e poeiras minerais.",
+          "Explosivos, inflamáveis, eletricidade, roubos/violência física em segurança pessoal e uso de motocicleta.",
+          "Agentes biológicos causadores de tuberculose e hepatite C.",
+          "Calor excessivo em ambientes fechados com forno industrial de fusão."
+        ],
+        answer: 1,
+        hint: "Periculosidade envolve risco iminente de morte por evento acidental catastrófico.",
+        rationale: "São atividades perigosas (NR-16): explosivos, inflamáveis, segurança pessoal/patrimonial, energia elétrica, atividades em motocicleta e radiações ionizantes."
+      },
+      {
+        modId: 1,
+        modName: "Normas Regulamentadoras",
+        question: "Qual o prazo de validade geral dos documentos do Inventário de Riscos do PGR para fins de histórico e rastreabilidade mínima obrigatória segundo a NR-1?",
+        options: [
+          "5 anos.",
+          "10 anos.",
+          "20 anos.",
+          "30 anos."
+        ],
+        answer: 2,
+        hint: "Prazo mantido para a maior parte dos registros de medicina e segurança ocupacional.",
+        rationale: "Os dados do PGR e seus documentos componentes devem ser mantidos arquivados pela organização por um período mínimo de 20 (vinte) anos (NR-1.5.7.3.3)."
+      },
+
+      // === MÓDULO 2: DOENÇAS E AGRAVOS RELACIONADOS AO TRABALHO (20 QUESTÕES) ===
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "A Perda Auditiva Induzida por Ruído Ocupacional (PAIR) possui características clínicas e audiométricas bem consolidadas. Assinale a opção que apresenta um sinal típico da PAIR:",
+        options: [
+          "Perda auditiva condutiva unilateral de início súbito e reversível.",
+          "Perda auditiva neurossensorial, bilateral, simétrica e irreversível com 'gota' ou entalhe nas frequências de 3kHz, 4kHz ou 6kHz.",
+          "Acometimento primário das frequências graves de 250Hz e 500Hz com estriações timpânicas.",
+          "Melhora completa do limiar auditivo após 48 horas de repouso acústico e uso de corticoides."
+        ],
+        answer: 1,
+        hint: "Observe o tipo de perda (neurossensorial) e as frequências mais atingidas.",
+        rationale: "A PAIR é uma perda neurossensorial, geralmente bilateral, simétrica, irreversível, que atinge predominantemente as frequências de 3.000, 4.000 ou 6.000 Hz, instalando-se gradativamente."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "Um trabalhador de uma indústria de reciclagem de baterias apresenta cólicas abdominais intensas ('cólica saturnina'), anemia microcítica com pontilhados basófilos e orla azulada na gengiva. Qual intoxicação ocupacional ele apresenta?",
+        options: [
+          "Hidrargirismo (Mercúrio).",
+          "Saturnismo (Chumbo).",
+          "Benzolismo (Benzeno).",
+          "Arsenicismo (Arsênio)."
+        ],
+        answer: 1,
+        hint: "A 'Linha de Burton' na gengiva e a 'cólica saturnina' são patognomônicas deste metal pesado.",
+        rationale: "A intoxicação por chumbo é chamada de Saturnismo. Quadro caracterizado por cólicas abdominais, anemia com pontilhados basófilos nos eritrócitos e a Linha de Burton (orla sulfurosa gengival)."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "Trabalhadores expostos ao vapor de mercúrio metálico em garimpos de ouro ou na fabricação de termômetros/lâmpadas podem desenvolver Hidrargirismo. Os sintomas neurológicos e orais característicos incluem:",
+        options: [
+          "Tremores finos nas mãos e pálpebras, eretismo mercurial (alterações de personalidade/eritema) e gengivite/sialorreia.",
+          "Cegueira amaurótica súbita e acidose metabólica grave.",
+          "Pneumonite fibrosante apical com nódulos calcificados.",
+          "Necrose dos ossos da mandíbula e mioclonia dos membros inferiores."
+        ],
+        answer: 0,
+        hint: "Procure por eretismo, tremores corporais e salivação excessiva.",
+        rationale: "O Hidrargirismo (intoxicação por mercúrio) cursa com tremores, gengivite, sialorreia (salivação abundante) e eretismo mercurial (irritabilidade, timidez excessiva e mudanças na personalidade)."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "O Metanol é um solvente orgânico highly tóxico. A ingestão ou inalação ocupacional de metanol causa toxicidade grave caracterizada por:",
+        options: [
+          "Fibrose pulmonar maciça progressiva em menos de 30 dias.",
+          "Acidose metabólica severa e neurite óptica que pode levar à cegueira irreversível.",
+          "Hipertrofia articular bilateral e gota tofosa secundária.",
+          "Púrpura trombocitopênica imunológica aguda sem alteração do SNC."
+        ],
+        answer: 1,
+        hint: "O metabólito do metanol (ácido fórmico) afeta gravemente o nervo óptico e o pH sanguíneo.",
+        rationale: "O metanol é metabolizado em formaldeído e ácido fórmico, gerando acidose metabólica com gap aniônico elevado e toxicidade no nervo óptico (turvação visual até cegueira)."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "As Dermatoses Ocupacionais representam uma grande parcela dos agravos no trabalho. A Dermatite de Contato por Irritante Próprio (DCI) difere da Dermatite de Contato Alérgica (DCA) porque a DCI:",
+        options: [
+          "Depende de sensitização prévia imunológica mediada por linfócitos T (Mecanismo Tipo IV).",
+          "Ocorre logo na primeira exposição ou por efeito cumulativo direto da substância na pele, sem mecanismo imunológico.",
+          "Pode se alastrar rapidamente para áreas não expostas do corpo via corrente sanguínea.",
+          "É causada unicamente por agentes biológicos como fungos e bactérias e não por produtos químicos."
+        ],
+        answer: 1,
+        hint: "Não envolve memória imunológica; resulta da agressão direta à barreira cutânea.",
+        rationale: "A Dermatite por Irritante Próprio (DCI) decorre da ação química/física direta na pele, sem reação imunológica prévia. Já a DCA é uma reação imunológica de hipersensibilidade tardia."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "Na Classificação Internacional de Doenças (CID-11), a Síndrome de Burnout foi atualizada e enquadrada como:",
+        options: [
+          "Um transtorno de ansiedade generalizada decorrente de predisposição genética.",
+          "Um fenômeno estritamente ligado ao contexto ocupacional, resultando de estresse crônico no local de trabalho não administrado com sucesso.",
+          "Uma condição psiquiátrica primária associada ao transtorno afetivo bipolar.",
+          "Uma fobia social incapacitante restrita a ambientes acadêmicos e escolares."
+        ],
+        answer: 1,
+        hint: "Não é classificada como doença psiquiátrica geral, mas como estresse crônico do trabalho (QD85).",
+        rationale: "No CID-11 (código QD85), o Burnout é conceituado exclusivamente como um fenômeno ocupacional decorrente do estresse crônico de trabalho não gerido com êxito, caracterizado por exaustão, despersonalização e baixa realização."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "A Escala de Zarit (Zarit Burden Interview) é uma ferramenta validada utilizada no contexto de saúde mental e saúde do trabalhador para avaliar:",
+        options: [
+          "O nível de perda auditiva em decibéis decorrente do ruído em estaleiros.",
+          "A sobrecarga física e emocional de cuidadores formais e informais de idosos ou dependentes.",
+          "O grau de contaminação cutânea por defensivos agrícolas organofosforados.",
+          "A probabilidade de lesão nos discos intervertebrais L4-L5."
+        ],
+        answer: 1,
+        hint: "Mede o 'burden' ou sobrecarga de quem cuida de terceiros.",
+        rationale: "A Escala de Zarit mensura a sobrecarga percebida por cuidadores (familiares ou profissionais) em relação à prestação de cuidados cotidianos."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "Na intoxicação aguda por agrotóxicos Organofosforados e Carbamatos, o quadro clínico é dominado pela Síndrome Colinérgica devido ao bloqueio da enzima:",
+        options: [
+          "Anidrase Carbônica.",
+          "Acetilcolinesterase.",
+          "Monoaminoxidase (MAO).",
+          "Creatina Quinase (CK-MB)."
+        ],
+        answer: 1,
+        hint: "A enzima que degrada o neurotransmissor acetilcolina na fenda sináptica.",
+        rationale: "Organofosforados e carbamatos inibem a acetilcolinesterase, acumulando acetilcolina e gerando hipersecreção (salivação, lacrimejamento), miose, bradicardia e fasciculações."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "A Síndrome do Túnel do Carpo, uma das afecções osteomusculares mais comuns no trabalho com digitação e montagem, decorre da compressão de qual estrutura nervosa no pulso?",
+        options: [
+          "Nervo Radial.",
+          "Nervo Ulnar.",
+          "Nervo Mediano.",
+          "Nervo Ciático Poplíteo."
+        ],
+        answer: 2,
+        hint: "Nervo responsável pela sensibilidade do 1º, 2º e 3º dedos da mão.",
+        rationale: "A Síndrome do Túnel do Carpo é a neuropatia compressiva do Nervo Mediano ao passar sob o retináculo dos flexores no pulso."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "A Síndrome de De Quervain é uma tenossinovite estenosante que acomete os tendões da bainha do primeiro compartimento dorsal do pulso. Quais são os dois tendões afetados?",
+        options: [
+          "Flexor curto do polegar e Extensor ulnar do carpo.",
+          "Abdutor Longo do Polegar (ALP) e Extensor Curto do Polegar (ECP).",
+          "Palmar longo e Flexor profundo dos dedos.",
+          "Extensor radial do carpo e Interósseo palmar."
+        ],
+        answer: 1,
+        hint: "Acomete os tendões responsáveis pelo afaste e extensão do polegar.",
+        rationale: "A tenossinovite de De Quervain afeta os tendões do Abdutor Longo do Polegar (ALP) e do Extensor Curto do Polegar (ECP)."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "Qual teste de exame físico ortopédico/ocupacional é considerado clássico e patognomônico para a confirmação diagnóstica da Tenossinovite de De Quervain?",
+        options: [
+          "Teste de Phalen.",
+          "Sinal de Tinel.",
+          "Manobra de Finkelstein.",
+          "Teste de Lasègue."
+        ],
+        answer: 2,
+        hint: "Consiste em fechar a mão sobre o polegar flexionado e fazer o desvio ulnar do pulso.",
+        rationale: "A Manobra de Finkelstein (flexão do polegar dentro da mão fechada seguida de desvio ulnar voluntário/passivo do punho) desperta dor aguda na estiloide radial ao esticar o ALP e ECP."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "Sobre as LER/DORT (Lesões por Esforços Repetitivos / Distúrbios Osteomusculares Relacionados ao Trabalho), é correto afirmar:",
+        options: [
+          "Possuem origem unicamente traumática e aguda, sem relação com fatores psicossociais.",
+          "Têm etiologia multifatorial, resultante do desequilíbrio entre exigências físico-organizacionais e a capacidade funcional do trabalhador.",
+          "A cura completa é garantida em 100% dos casos mediante imobilização por gesso no primeiro mês.",
+          "Afetam exclusivamente a musculatura lisa dos órgãos viscerais abdominais."
+        ],
+        answer: 1,
+        hint: "Involvem sobrecarga repetitiva, falta de pausas, ergonomia e clima organizacional.",
+        rationale: "As LER/DORT são multicausais: envolvem repetitividade, força excessiva, posturas inadequada, falta de pausas e estresse psicossocial."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "Na evolução clínica das LER/DORT, a Fase 3 é caracterizada por:",
+        options: [
+          "Desconforto leve que surge apenas no final do expediente e desaparece com o repouso noturno.",
+          "Dor persistente que não alivia com o repouso, interferindo nas atividades de vida diária e no trabalho, acompanhada de paroxismos e perda de força.",
+          "Ausência total de dor e presença de fibrose muscular calcificada assintomática.",
+          "Sensação transitória de formigamento durante a ginástica laboral."
+        ],
+        answer: 1,
+        hint: "Na Fase 3 a dor deixa de ser transitória e passa a atrapalhar fora do trabalho.",
+        rationale: "Na Fase 3 da LER/DORT, a dor é persistente, mesmo em repouso, afetando o sono e a execução de tarefas rotineiras, podendo haver edemas e déficit de força muscular."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "O Manguito Rotador é uma estrutura anatômica do ombro muito vulnerável nas LER/DORT em trabalhadores que atuam com braços elevados. É composto pelos tendões de quais músculos?",
+        options: [
+          "Peitoral maior, Deltoide, Trapézio e Romboide.",
+          "Supraespinhal, Infraespinhal, Subescapular e Redondo Menor.",
+          "Bíceps braquial, Braquiorradial, Tríceps e Coracobraquial.",
+          "Serrátil anterior, Grande dorsal, Escaleno e Supinador."
+        ],
+        answer: 1,
+        hint: "Iniciais SISS (Supra, Infra, Sub, Sub/Redondo menor).",
+        rationale: "O Manguito Rotador estabiliza a articulação glenoumeral e é formado pelos tendões dos músculos: Supraespinhal, Infraespinhal, Subescapular e Redondo Menor."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "A Epicondilite Lateral (conhecida como 'cotovelo de tenista') no ambiente de trabalho é provocada comumente por esforços repetitivos de:",
+        options: [
+          "Flexão e pronação contínua do antebraço.",
+          "Extensão do punho e dos dedos com pronação do antebraço.",
+          "Elevação do ombro acima de 90 graus com carga.",
+          "Adução das coxas e rotação interna do quadril."
+        ],
+        answer: 1,
+        hint: "Causa inflamação na inserção da musculatura extensora do punho na face lateral do cotovelo.",
+        rationale: "A Epicondilite Lateral afeta a origem dos músculos extensores do punho e dedos (especialmente o extensor curto radial do carpo) devido a movimentos de extensão repetitiva ou preensão do punho."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "A perda auditiva por exposição ao ruído ocupacional atinge primeiramente as células ciliadas de qual estrutura do ouvido interno?",
+        options: [
+          "Tímpano e Ossículos (Martelo, Bigorna e Estribo).",
+          "Órgão de Corti na Cópula/Cóclea.",
+          "Canais Semicirculares da orelha média.",
+          "Trompa de Eustáquio."
+        ],
+        answer: 1,
+        hint: "O receptor sensorial da audição localizado dentro da cóclea.",
+        rationale: "O ruído excessivo causa destruição microvascular e mecânica do Órgão de Corti (células ciliadas neurossensoriais) na base da cóclea."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "Quais das substâncias químicas a seguir, além de neurotóxicas, são comprovadamente Ototóxicas (potencializam ou causam perda auditiva)?",
+        options: [
+          "Solventes orgânicos como Tolueno, Xileno e Estireno.",
+          "Cloreto de sódio e bicarbonato de potássio.",
+          "Ácido cítrico e peróxido de hidrogênio diluído.",
+          "Gás hélio e oxigênio hiperbárico."
+        ],
+        answer: 0,
+        hint: "Trata-se de um grupo de solventes aromáticos usados em tintas e colas.",
+        rationale: "Solventes como tolueno, xileno, estireno e dissulfeto de carbono possuem ação ototóxica, lesando o sistema auditivo central e periférico, especialmente quando combinados com ruído."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "Um cirurgião-dentista apresenta lesões eritematosas, secas e descamativas nas mãos com fissuras dolorosas após anos de uso intensivo de luvas de látex e lavagem frequente. O diagnóstico mais provável é:",
+        options: [
+          "Melanoma acral lentiginoso.",
+          "Dermatite de Contato Ocupacional.",
+          "Lúpus eritematoso sistêmico cutâneo.",
+          "Psoríase vulgar idiopática."
+        ],
+        answer: 1,
+        hint: "Patologia comum em profissionais de saúde pela fricção, sabões e látex.",
+        rationale: "As Dermatoses Ocupacionais são frequentes em profissionais de saúde devido à exposição contínua a detergentes, antissépticos, luvas e umidade cutânea."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "A complicação sistêmica renal clássica que pode ser desencadeada por intoxicação crônica por Mercúrio ou Chumbo é a:",
+        options: [
+          "Litíase renal de oxalato de cálcio.",
+          "Glomerulopatia / Nefrite intersticial crônica com proteinúria.",
+          "Infeção urinária baixa recorrente por E. coli.",
+          "Estenose congênita da artéria renal."
+        ],
+        answer: 1,
+        hint: "Metais pesados acumulam-se no túbulo proximal e glomérulos renais.",
+        rationale: "Tanto o mercúrio quanto o chumbo causam nefrotoxicidade direta, resultando em proteinúria, síndrome nefrótica e nefrite intersticial crônica com perda progressiva da função renal."
+      },
+      {
+        modId: 2,
+        modName: "Doenças e Agravos",
+        question: "Qual antídoto / agente quelante é utilizado no tratamento médico específico da intoxicação grave por Chumbo (Saturnismo)?",
+        options: [
+          "Atropina e Pralidoxima.",
+          "EDTA Cálcico Disassódico ou DMSA (Sucimer).",
+          "N-Acetilcisteína e Vitamina K.",
+          "Naloxona e Flumazenil."
+        ],
+        answer: 1,
+        hint: "Agente quelante de metais pesados que forma complexos solúveis excretados na urina.",
+        rationale: "O EDTA cálcico dissódico e o DMSA ligam-se aos íons de chumbo no sangue e tecidos, promovendo sua excreção urinária segura."
+      },
+
+      // === MÓDULO 3: ERGONOMIA E TOXICOLOGIA OCUPACIONAL (15 QUESTÕES) ===
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "A Ergonomia é dividida classicamente em três grandes domínios de especialização. Quais são eles?",
+        options: [
+          "Ergonomia Física, Ergonomia Cognitiva e Ergonomia Organizacional.",
+          "Ergonomia Postural, Ergonomia Financeira e Ergonomia Jurídica.",
+          "Ergonomia Mecânica, Ergonomia Química e Ergonomia Biológica.",
+          "Ergonomia Hospitalar, Ergonomia Agrícola e Ergonomia Urbana."
+        ],
+        answer: 0,
+        hint: "Domínios reconhecidos pela Associação Internacional de Ergonomia (IEA).",
+        rationale: "A IEA divide a ergonomia nos três domínios clássicos: Física (postura, anatomia), Cognitiva (processos mentais, estresse) e Organizacional (estruturas, processos e cultura)."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "Na biomecânica da coluna vertebral, mais de 90% das hérnias de disco e dores lombalgicas ocupacionais ocorrem em quais níveis intervertebrais devido à máxima mobilidade e sobrecarga?",
+        options: [
+          "C1-C2 e C2-C3.",
+          "T7-T8 e T8-T9.",
+          "L4-L5 e L5-S1.",
+          "S3-S4 e S4-S5."
+        ],
+        answer: 2,
+        hint: "Transição lombossacra onde ocorre o maior torque nas alavancas musculares.",
+        rationale: "A região lombar baixa ($L4-L5$ e $L5-S1$) suporta a maior parte do peso corporal e dos momentos de força durante a flexão do tronco e levantamento de cargas."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "Ao realizar o levantamento manual de uma carga do chão, qual orientação ergonômica reduz drasticamente a pressão intra-discal na região lombar?",
+        options: [
+          "Manter as pernas totalmente estendidas e dobrar o tronco em 90 graus para frente.",
+          "Dobrar os joelhos, manter a coluna ereta e trazer a carga o mais próximo possível do corpo.",
+          "Girar o tronco lateralmente durante a elevação máxima da caixa.",
+          "Afastar a carga do corpo estendendo os braços antes de iniciar a subida."
+        ],
+        answer: 1,
+        hint: "Diminuir o braço de alavanca (distância da carga ao centro de gravidade) e usar a força dos membros inferiores.",
+        rationale: "Manter a carga próxima ao corpo reduz a distância do momento de força, e dobrar os joelhos utiliza a musculatura potente das coxas, aliviando os discos lombossacros."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "Na toxicologia ocupacional, o conceito de Valor Limite de Exposição (VET) ou Limite de Tolerância (LT) representa:",
+        options: [
+          "A concentração do agente químico no ar abaixo da qual a maioria dos trabalhadores pode estar exposta repetidamente sem efeitos adversos à saúde.",
+          "A dose exata necessária para produzir óbito em 50% dos trabalhadores expostos (DL50).",
+          "A quantidade de veneno contida obrigatoriamente no sangue do indivíduo ao final do expediente.",
+          "A taxa de evaporação permitida do solvente antes da inspeção do fiscal."
+        ],
+        answer: 0,
+        hint: "Parâmetro preventivo ambiental do ar ambiente.",
+        rationale: "O Limite de Tolerância/Exposição é a concentração média ou de pico do agente no ar sob a qual se acredita que quase todos os trabalhadores podem estar expostos continuamente sem danos."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "O Indicador Biológico de Exposição (IBE) é utilizado no monitoramento da saúde do trabalhador exposto a químicos. O IBE avalia:",
+        options: [
+          "A quantidade de poeira visível retida nos filtros do ar condicionado.",
+          "A substância química ou seus metabólitos em fluidos biológicos (sangue, urina) do trabalhador.",
+          "A presença de ruído acumulado no conduto auditivo externo.",
+          "A temperatura interna da sala de reuniões executivas."
+        ],
+        answer: 1,
+        hint: "Mede a dose absorvida internamente pelo organismo.",
+        rationale: "O IBE (previsto na NR-7) mede o agente químico ou seus produtos de degradação metabólica em matrizes biológicas (urina, sangue, ar exalado), refletindo a absorção real do trabalhador."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "A equação de NIOSH é uma ferramenta consagrada na ergonomia física utilizada para calcular:",
+        options: [
+          "O tempo máximo de digitação sem intervalo em escritórios.",
+          "O Limite de Peso Recomendado (LPR) no transporte manual de cargas.",
+          "A quantidade de calor suportada por bombeiros em incêndios.",
+          "O número exato de protetores auriculares necessários por setor."
+        ],
+        answer: 1,
+        hint: "Ferramenta para análise biomecânica do levantamento de caixas/pesos.",
+        rationale: "A Equação de NIOSH avalia tarefas de levantamento de carga manual calculando o Limite de Peso Recomendado (LPR) com base na geometria do movimento."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "Na Ergonomia Cognitiva, qual dos fatores a seguir é objeto central de estudo e intervenção?",
+        options: [
+          "Altura e estofamento das cadeiras de trabalho.",
+          "Carga mental de trabalho, tomada de decisão, vigilância, estresse e erro humano.",
+          "Composição química de graxas e óleos lubrificantes.",
+          "Dimensões do refeitório e número de lavatórios por pessoa."
+        ],
+        answer: 1,
+        hint: "Relação entre o processamento cerebral de informações e as exigências da tarefa.",
+        rationale: "A Ergonomia Cognitiva foca nos processos mentais (percepção, memória, raciocínio, atenção) e na carga cognitiva associada ao trabalho."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "Para evitar a fadiga e lesões no trabalho informatizado (digitadores, call center), a NR-17 estabelece que nas atividades de processamento eletrônico de dados com exigência de digitação continuada:",
+        options: [
+          "A jornada deve ser obrigatoriamente de 10 horas com intervalo único ao final.",
+          "O tempo efetivo do trabalho de entrada de dados não deve exceder 6 horas diárias, com pausas obrigatórias de 10 minutos a cada 50 minutos trabalhados.",
+          "Não há necessidade de pausas se a cadeira for ergonomicamente ajustável.",
+          "A produção deve ser calculada estritamente por número de toques sem teto máximo."
+        ],
+        answer: 1,
+        hint: "Limite diário de 6 horas efetivas de digitação e pausas de 10 minutos.",
+        rationale: "A NR-17 estipula teto de 6 horas diárias de digitação efetiva e pausas de 10 minutos a cada 50 minutos trabalhados, não devendo a produção ser baseada unicamente no número de toques."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "As fases da Ação Tóxica de um agente químico no organismo ocorrem na seguinte sequência cronológica correta:",
+        options: [
+          "Fase Clínica -> Fase Toxicológica -> Fase de Exposição -> Fase de Absorção.",
+          "Fase de Exposição -> Fase Toxicocinética -> Fase Toxicodinâmica -> Fase Clínica.",
+          "Fase de Eliminação -> Fase de Exposição -> Fase Dinâmica -> Fase Estática.",
+          "Fase Metabólica -> Fase de Exposição -> Fase Renal -> Fase Óptica."
+        ],
+        answer: 1,
+        hint: "Do contato exterior (exposição) à ação metabólica (cinética) e celular (dinâmica).",
+        rationale: "As fases são: Exposição (contato com a via), Toxicocinética (absorção, distribuição, biotransformação, eliminação), Toxicodinâmica (interação com o receptor) e Fase Clínica (sinais e sintomas)."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "Qual via de introdução de agentes químicos é quantitativamente a mais importante e frequente nos ambientes de trabalho industriais?",
+        options: [
+          "Via Digestiva / Oral.",
+          "Via Inalatória / Respiratória.",
+          "Via Parenteral / Injetável.",
+          "Via Ocular primária."
+        ],
+        answer: 1,
+        hint: "A área de absorção dos alvéolos pulmonares e a respiração constante facilitam esta via.",
+        rationale: "A via respiratória (inalatória) é a principal via de penetração de contaminantes químicos no organismo no meio ocupacional (gases, vapores, poeiras e fumos)."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "Em relação ao ajuste ergonômico do posto de trabalho informatizado (escritório), a borda superior do monitor de vídeo deve estar posicionada:",
+        options: [
+          "No nível dos olhos ou ligeiramente abaixo da linha horizontal de visão do trabalhador.",
+          "A 45 graus acima da linha dos olhos para esticar a cervical.",
+          "No nível do joelho do trabalhador.",
+          "Colada à mesa de forma que o pescoço fique em flexão de 60 graus."
+        ],
+        answer: 0,
+        hint: "Posição que mantém o pescoço em postura neutra sem extensão excessiva.",
+        rationale: "O topo do monitor deve ficar na altura dos olhos (ou ligeiramente abaixo) para permitir que a cabeça e o pescoço permaneçam em posição neutra e confortável."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "No transporte e manuseio de materiais, a alavanca do tipo Interfixa formada pela cabeça e primeira vértebra cervical (Atlanto-Occipital) e as alavancas do tronco exigem contração muscular constante. O esforço muscular Estático prolongado resulta em:",
+        options: [
+          "Melhora imediata da oxigenação muscular e estiramento benéfico.",
+          "Isquemia muscular local, acúmulo de ácido lático e dor/fadiga precoce.",
+          "Aumento da força óssea sem qualquer gasto energético.",
+          "Regeneração acelerada dos discos intervertebrais."
+        ],
+        answer: 1,
+        hint: "Trabalho estático impede a circulação sanguínea regular pelo aperto constante dos vasos.",
+        rationale: "A contração estática prolongada comprime os vasos sanguíneos locais, reduzindo a irrigação de oxigênio (isquemia) e acumulando metabólitos tóxicos (ácido lático), o que gera dor rápida."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "Qual o limite de peso estipulado na CLT (Art. 390) para o transporte manual contínuo de carga por trabalhadores do sexo feminino?",
+        options: [
+          "10 kg para trabalho contínuo.",
+          "20 kg para trabalho contínuo (e 25 kg para ocasional).",
+          "40 kg para qualquer situação.",
+          "Não há limite diferenciado em legislação."
+        ],
+        answer: 1,
+        hint: "O Art. 390 da CLT fixa 20 kg para esforço contínuo e 25 kg para ocasional.",
+        rationale: "O Art. 390 da CLT estabelece que é vedado empregar a mulher em serviço que exija força muscular superior a 20 kg para o trabalho contínuo, ou 25 kg para o ocasional."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "O efeito tóxico 'Sinergismo' ocorre quando a combinação de duas substâncias químicas no organismo produz um efeito:",
+        options: [
+          "Igual à subtração dos efeitos individuais de cada uma.",
+          "Muito maior do que a soma dos efeitos individuais de cada substância isolada ($1 + 1 > 2$).",
+          "Nulo, com neutralização total da toxicidade de ambas.",
+          "Indetectável por exames laboratoriais de sangue."
+        ],
+        answer: 1,
+        hint: "Ação potencializada onde o resultado final supera a simples soma.",
+        rationale: "No sinergismo, o efeito combinado de dois agentes é significativamente maior do que a soma aritmética de seus efeitos individuais (ex: álcool + solventes)."
+      },
+      {
+        modId: 3,
+        modName: "Ergonomia e Toxicologia",
+        question: "Para a prevenção de lombalgias em motoristas profissionais de transporte rodoviário, além do ajuste ergonômico do banco com suporte lombar, o fator de risco físico que deve ser mitigado é:",
+        options: [
+          "A iluminação LED do painel do veículo.",
+          "Vibração de Corpo Inteiro (VCI).",
+          "Exposição a campos magnéticos de baixa frequência.",
+          "O peso da chave de ignição."
+        ],
+        answer: 1,
+        hint: "A vibração transmitida pelo assento ao esqueleto do motorista.",
+        rationale: "A Vibração de Corpo Inteiro (VCI) acoplada à postura sentada prolongada acelera a degeneração dos discos intervertebrais da coluna lombar."
+      },
+
+      // === MÓDULO 4: SAÚDE DO TRABALHADOR NO CONTEXTO ORGANIZACIONAL (15 QUESTÕES) ===
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "Segundo Amy Edmondson, o conceito de 'Segurança Psicológica' nas organizações é definido como:",
+        options: [
+          "A garantia jurídica de estabilidade definitiva no emprego contratual.",
+          "A crença compartilhada de que a equipe é um ambiente seguro para assumir riscos interpessoais sem medo de punição, rejeição ou humilhação.",
+          "A ausência total de cobrança de metas ou prazos por parte das chefias.",
+          "O fornecimento obrigatório de plano de saúde com cobertura psiquiátrica."
+        ],
+        answer: 1,
+        hint: "Permite admitir erros, fazer perguntas e propor ideias sem temor a retaliações.",
+        rationale: "Segurança Psicológica é o clima interpessoal onde os colaboradores se sentem confortáveis em se expressar, errar, questionar e inovar sem receio de sanções morais ou represálias."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "A Liderança Tóxica é um fator determinante de adoecimento mental coletivo nas organizações. É estruturada tipicamente em três pilares morfológicos:",
+        options: [
+          "Empatia, Comunicação Aberta e Flexibilidade.",
+          "Autoritarismo, Falta de Empatia e Gestão pelo Medo.",
+          "Treinamento Contínuo, Delegação e Elogios Públicos.",
+          "Respeito às NRs, Foco em ESG e Transparência Financeira."
+        ],
+        answer: 1,
+        hint: "Atitudes baseadas na coação, humilhação e desconsideração do indivíduo.",
+        rationale: "A liderança tóxica utiliza a coação, o autoritarismo e a ausência de empatia, mantendo a equipe sob estresse e ansiedade constantes."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "Assinale a alternativa que define corretamente o Assédio Moral Organizacional (ou Gestão por Estresse):",
+        options: [
+          "Um desentendimento pontual e isolado entre dois colegas de mesmo nível hierárquico.",
+          "A exposição sistemática, repetitiva e prolongada de trabalhadores a situações humilhantes e constrangedoras integradas à estratégia de gestão para aumentar a produtividade.",
+          "A aplicação justa de uma advertência por descumprimento de horário previsto em contrato.",
+          "A exigência pontual de cumprimento da legislação trabalhista e segurança da CIPA."
+        ],
+        answer: 1,
+        hint: "Repetitividade e intenção de intimidação/sobrecarga abusiva.",
+        rationale: "O Assédio Moral se caracteriza pela conduta abusiva, frequente e premeditada que atenta contra a dignidade e a integridade psíquica do trabalhador."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "Em relação ao pilar Social (S) da sigla ESG (Environmental, Social, Governance), qual prática corporativa impacta diretamente a saúde do trabalhador?",
+        options: [
+          "Adoção de energia solar exclusiva na fábrica.",
+          "Promoção de ambientes trabalho psiquicamente saudáveis, prevenção do assédio e igualdade de oportunidades.",
+          "Publicação do balanço contábil no diário oficial.",
+          "Redução da taxa de juros do financiamento bancário."
+        ],
+        answer: 1,
+        hint: "A letra 'S' do ESG refere-se às pessoas e às relações de trabalho.",
+        rationale: "O pilar Social (S) abrange a segurança e saúde no trabalho, o bem-estar mental, a diversidade, inclusão e a erradicação de práticas abusivas."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "A 'Normalização do Sofrimento' no ambiente corporativo manifesta-se através de frases como 'quem não aguenta pressão não serve para esta empresa'. Esse fenômeno provoca:",
+        options: [
+          "Aumento imediato do bem-estar e redução de rotatividade de funcionários.",
+          "Adoecimento silencioso, inibição de pedidos de ajuda e ocultação de sintomas graves de exaustão.",
+          "Fortalecimento dos laços de amizade entre os trabalhadores operacionais.",
+          "Diminuição das taxas de absenteísmo por motivos psiquiátricos a zero."
+        ],
+        answer: 1,
+        hint: "Os trabalhadores passam a achar normal o esgotamento até o colapso.",
+        rationale: "A cultura de valorizar o sofrimento induz o trabalhador a esconder a exaustão por medo de passar por incompetente, retardando o diagnóstico do Burnout e depressão."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "Qual das opções abaixo representa um exemplo prático de Assédio Moral do tipo 'Isolamento Proposital'?",
+        options: [
+          "Conceder férias coletivas a todo o setor de produção no mês de dezembro.",
+          "Retirar os instrumentos de trabalho do funcionário, não lhe repassar informações essenciais e ignorar sua presença no setor.",
+          "Convidar o trabalhador para um treinamento presencial fora do horário normal.",
+          "Elogiar publicamente apenas os vendedores que bateram as metas do mês."
+        ],
+        answer: 1,
+        hint: "Adoção do 'ostracismo' ou esvaziamento de funções para forçar o pedido de demissão.",
+        rationale: "O esvaziamento de funções e o isolamento físico ou comunicacional constituem formas severas de assédio moral ('quarentena ou ostracismo jurídico')."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "O Absenteísmo e o Turnover são indicadores de gestão diretamente influenciados pelo clima organizacional. Suas definições correspondem a:",
+        options: [
+          "Absenteísmo: Taxa de vendas; Turnover: Investimento em treinamento de pessoal.",
+          "Absenteísmo: Padrão de ausências/faltas ao trabalho; Turnover: Taxa de rotatividade de funcionários (entradas e saídas).",
+          "Absenteísmo: Horas extras pagas; Turnover: Quantidade de produtos defeituosos.",
+          "Absenteísmo: Nível de ruído ambiente; Turnover: Percentual de lucro líquido."
+        ],
+        answer: 1,
+        hint: "Ausências repetidas e troca constante de funcionários na empresa.",
+        rationale: "Absenteísmo é o indicador de faltas e atrasos não programados; Turnover indica a rotatividade da força de trabalho. Ambientes tóxicos elevam ambos os índices."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "Dentre as estratégias eficazes das organizações para o enfrentamento e prevenção do assédio moral e riscos psicossociais, destaca-se:",
+        options: [
+          "Incentivar a delação anônima premiada entre colegas sobre comportamentos pessoais.",
+          "Implantar canais de denúncia seguros e independentes com garantia de não retaliação e código de ética claro.",
+          "Proibir conversas informais e momentos de descanso durante toda a jornada.",
+          "Eliminar as comissões de CIPA e transferir a responsabilidade total ao empregado."
+        ],
+        answer: 1,
+        hint: "Canais confiáveis e ouvidorias com sigilo absoluto.",
+        rationale: "Canais de denúncia seguros, código de conduta bem definido e punição efetiva dos agressores são indispensáveis para erradicar o assédio."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "A Síndrome de Burnout compõe-se de três dimensões psicopatológicas inter-relacionadas. De acordo com o modelo de Maslach e a CID-11, são elas:",
+        options: [
+          "Exaustão Emocional, Despersonalização (Ceticismo/Cinismo) e Baixa Realização Profissional.",
+          "Anemia Severa, Insônia Aguda e Perda de Memória de Curto Prazo.",
+          "Agressividade Física, Delírio Ocupacional e Compulsão Alimentar.",
+          "Euforia Ocupacional, Hiperatividade e Ausência de Sono."
+        ],
+        answer: 0,
+        hint: "Esgotamento das energias, atitude fria/distante e sentimento de incompetência.",
+        rationale: "Burnout engloba: 1) Exaustão emocional (esgotamento); 2) Despersonalização (frieza e distanciamento dos clientes/colegas); 3) Redução da realização pessoal no trabalho."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "Na dinâmica das relações de trabalho, a diferença central entre Cultura Organizacional e Clima Organizacional é que:",
+        options: [
+          "A Cultura reflete os valores, crenças e normas profundas e enraizadas da empresa; o Clima reflete a percepção e o estado de espírito temporário dos colaboradores.",
+          "A Cultura muda semanalmente; o Clima leva décadas para ser alterado.",
+          "A Cultura aplica-se apenas aos chefes; o Clima aplica-se aos estagiários.",
+          "Não há qualquer diferença, sendo termos estritamente sinônimos na sociologia do trabalho."
+        ],
+        answer: 0,
+        hint: "Cultura é o 'DNA' estrutural; Clima é a 'atmosfera' do momento.",
+        rationale: "A Cultura é o conjunto de premissas, valores e costumes consolidados da empresa. O Clima é a atmosfera psicológica percebida no cotidiano, afetada por decisões recentes."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "A Lei 14.457/22 alterou o escopo da NR-5, alterando a denominação da CIPA para Comissão Interna de Prevenção de Acidentes e de Assédio. O objetivo desta mudança legal foi:",
+        options: [
+          "Transferir a responsabilidade de fiscalizar o INSS para os empregados da CIPA.",
+          "Tornar obrigatória a inclusão de regras de conduta contra o assédio sexual e demais formas de violência nas rotinas da CIPA e da empresa.",
+          "Obrigar a demissão por justa causa de trabalhadores com depressão.",
+          "Extinguir os serviços de ouvidoria interna das empresas privadas."
+        ],
+        answer: 1,
+        hint: "A inclusão do combate ao assédio e à violência no trabalho nas atribuições da CIPA.",
+        rationale: "A Lei 14.457/22 exigiu que as empresas com CIPA estabeleçam regras contra o assédio sexual e violência, recebam denúncias e realizem ações de sensibilização."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "O conceito de 'Presenteísmo' no contexto de saúde do trabalhador refere-se à situação em que o funcionário:",
+        options: [
+          "Falta ao trabalho justificando com atestado médico falso.",
+          "Está fisicamente presente no posto de trabalho, mas com capacidade produtiva e cognitiva reduzida devido a problemas físicos ou mentais.",
+          "Recebe premiações em dinheiro por assiduidade perfeita durante o ano.",
+          "Trabalha exclusivamente no regime de teletrabalho / home office."
+        ],
+        answer: 1,
+        hint: "Estar presente de corpo, mas improdutivo por adoecimento.",
+        rationale: "No presenteísmo, o trabalhador frequenta a empresa mesmo doente, sem condições físicas ou mentais de focar, o que aumenta os erros e os riscos de acidentes."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "Qual das opções a seguir é uma consequência do Assédio Moral para a ORGANIZAÇÃO e não apenas para a vítima?",
+        options: [
+          "Desenvolvimento de úlcera gástrica individual.",
+          "Elevação dos custos com passivos trabalhistas, queda na reputação corporativa e aumento do turnover.",
+          "Perda de sensibilidade auditiva nas frequências agudas.",
+          "Aumento imediato da criatividade dos demais trabalhadores."
+        ],
+        answer: 1,
+        hint: "Impactos no caixa, processos na Justiça do Trabalho e atração de talentos.",
+        rationale: "O assédio moral atinge o patrimônio da empresa através de indenizações por dano moral, perda de produtividade, mancha na imagem e saída frequente de talentos."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "Uma Liderança Saudável é reconhecida no dia a dia por demonstrar as seguintes atitudes, EXCETO:",
+        options: [
+          "Fornecer feedbacks construtivos focados no desenvolvimento do liderado.",
+          "Acolher vulnerabilidades e reconhecer erros da própria gestão.",
+          "Estimular a competição desleal e o uso de piadas pejorativas como motivação.",
+          "Promover o equilíbrio entre as metas operacionais e o bem-estar da equipe."
+        ],
+        answer: 2,
+        hint: "Identifique a postura antagônica à liderança saudável.",
+        rationale: "Incentivar a competição predatória e o uso de humilhações são marcas registradas da liderança tóxica."
+      },
+      {
+        modId: 4,
+        modName: "Contexto Organizacional",
+        question: "Os Riscos Psicossociais no Trabalho englobam deficiências no planejamento, organização e gestão do trabalho. São exemplos de fatores de risco psicossocial:",
+        options: [
+          "Carga de trabalho excessiva, falta de controle/autonomia, papéis ambíguos e assédio.",
+          "Uso de protetor plug de silicone e bota de PVC.",
+          "Exposição a vírus da Influenza e Hepatite B.",
+          "Poeira de sílica livre e fibras de asbesto."
+        ],
+        answer: 0,
+        hint: "Fatores associados à forma como o trabalho é organizado e às relações interpessoais.",
+        rationale: "Riscos psicossociais derivam da organização do trabalho: pressões extremas, ritmos intensos, baixo apoio social, ambiguidade de papéis e assédio."
+      },
+
+      // === MÓDULO 5: AGRAVOS, CEREST, NOTIFICAÇÃO E INSS (15 QUESTÕES) ===
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "A Rede Nacional de Atenção Integral à Saúde do Trabalhador (RENAST) no âmbito do SUS tem como porta de entrada e centro de retaguarda técnica especializada, respectivamente:",
+        options: [
+          "O Hospital Privado e a Delegacia de Polícia Civil.",
+          "A Atenção Primária à Saúde (UBS) e o Centro de Referência em Saúde do Trabalhador (CEREST).",
+          "O Ministério da Fazenda e o Conselho de CIPA.",
+          "O Tribunal Regional do Trabalho e a Receita Federal."
+        ],
+        answer: 1,
+        hint: "A rede básica de saúde da família e o centro especializado do SUS.",
+        rationale: "A Atenção Primária em Saúde (UBS) é a porta de entrada preferencial, enquanto o CEREST atua como polo coordenador, polo de apoio técnico e retaguarda especializada da RENAST."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "No Sistema de Informação de Agravos de Notificação (SINAN), a Notificação Compulsória dos Agravos à Saúde do Trabalhador deve ser realizada por:",
+        options: [
+          "Apenas médicos com especialização em Medicina do Trabalho inscritos na CIPA.",
+          "Qualquer profissional de saúde (médicos, enfermeiros, etc.) no exercício da assistência em serviços públicos ou privados.",
+          "Exclusivamente auditores fiscais do Ministério do Trabalho e Emprego.",
+          "Apenas os próprios trabalhadores atingidos após aprovação do empregador."
+        ],
+        answer: 1,
+        hint: "Trata-se de um dever legal amplo de todos os profissionais de saúde da rede pública e privada.",
+        rationale: "A notificação compulsória é obrigatória para todos os profissionais de saúde que prestam atendimento ao paciente em qualquer nível do sistema público ou privado."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "Qual das seguintes condições relacionadas ao trabalho exige NOTIFICAÇÃO COMPULSÓRIA IMEDIATA (em até 24 horas) para as autoridades de vigilância epidemiológica?",
+        options: [
+          "PAIR (Perda Auditiva Induzida por Ruído) estável.",
+          "Acidente de trabalho grave, com morte, amputações ou envolvendo crianças/adolescentes.",
+          "Dermatose ocupacional leve por contato com detergente.",
+          "Tendinite do supraespinhal em fase 1."
+        ],
+        answer: 1,
+        hint: "Eventos de extrema gravidade, letais ou envolvendo trabalho infantil.",
+        rationale: "Acidentes de trabalho graves, fatais ou que envolvem crianças e adolescentes exigem notificação imediata (até 24 horas). Agravos crônicos como PAIR, LER/DORT e dermatoses possuem notificação de periodicidade semanal."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "A Comunicação de Acidente de Trabalho (CAT) deve ser emitida pela empresa junto ao INSS até qual prazo legal após a ocorrência do acidente ou diagnóstico da doença ocupacional?",
+        options: [
+          "Até o primeiro dia útil seguinte ao da ocorrência (ou de imediato em caso de morte).",
+          "Até 30 dias após a alta médica do trabalhador.",
+          "No final do ano civil durante a reunião da CIPA.",
+          "Apenas se o trabalhador for demitido sem justa causa."
+        ],
+        answer: 0,
+        hint: "Prazo curto previsto no Art. 22 da Lei 8.213/91.",
+        rationale: "A empresa é obrigada a informar o acidente de trabalho ao INSS através da CAT até o primeiro dia útil seguinte ao da ocorrência e, em caso de morte, de imediato à autoridade competente."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "Diferencie os benefícios do INSS: Auxílio por Incapacidade Temporária Previdenciário (B31) do Acidentário (B91). Assinale a afirmativa correta:",
+        options: [
+          "O B31 exige nexo com o trabalho; o B91 é para doenças comuns sem relação laborativa.",
+          "O B91 decorre de acidente ou doença do trabalho, concede estabilidade provisória de 12 meses após a alta e exige recolhimento contínuo de FGTS; o B31 não gera tais direitos.",
+          "Ambos dispensam carência e ambos garantem estabilidade no emprego por dois anos.",
+          "O B31 é pago pelo Ministério do Trabalho; o B91 é pago pessoalmente pelo proprietário da empresa."
+        ],
+        answer: 1,
+        hint: "O sufixo '91' indica natureza acidentária/ocupacional e protege o emprego do trabalhador.",
+        rationale: "O B91 (Acidentário) é concedido se houver nexo causal com o trabalho. Ele garante estabilidade no emprego por 12 meses após o retorno, manutenção do FGTS pela empresa durante o afastamento e dispensa carência."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "Caso a empresa se recuse a emitir a CAT após um acidente de trabalho, quais entidades/pessoas possuem prerrogativa legal para formalizar a emissão do documento?",
+        options: [
+          "O próprio trabalhador acidentado, seus dependentes, a entidade sindical, o médico assistente ou qualquer autoridade pública.",
+          "Apenas o juiz federal presidente do Supremo Tribunal Federal.",
+          "Nenhuma outra pessoa; sem a assinatura do empregador o documento perde a validade.",
+          "Exclusivamente os auditores da Receita Federal do Brasil."
+        ],
+        answer: 0,
+        hint: "A legislação protege o trabalhador permitindo que terceiros emitam o documento.",
+        rationale: "Na recusa da empresa, a CAT pode ser emitida pelo próprio acidentado, seus dependentes, o sindicato da categoria, o médico que prestou atendimento ou autoridade pública (Art. 22, § 2º da Lei 8.213/91)."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "O Nexo Técnico Epidemiológico Previdenciário (NTEP) é uma ferramenta do INSS que estabelece o nexo causal entre a doença e o trabalho cruzando automaticamente quais dados?",
+        options: [
+          "O CPF do trabalhador e o número da carteira de motorista.",
+          "O código da doença (CID-10) e o código da atividade econômica da empresa (CNAE).",
+          "O salário bruto do empregado e o valor das horas extras prestadas.",
+          "O grau de instrução escolar e o número de filhos menores."
+        ],
+        answer: 1,
+        hint: "Relaciona estatisticamente a doença diagnósticada com o ramo da empresa.",
+        rationale: "O NTEP cruza o agrupamento do CID com a classe do CNAE. Se houver associação estatística/epidemiológica entre a doença e o setor, presume-se o nexo ocupacional (B91) cabendo à empresa o ônus da prova em contrário."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "A Vigilância em Saúde do Trabalhador (VISAT) compreende um conjunto de ações que visam o conhecimento, a detecção e a prevenção de determinantes de saúde no trabalho. Uma característica central da VISAT é:",
+        options: [
+          "Atuar exclusivamente dentro de escritórios administrativos sem visitar fábricas.",
+          "Possuir caráter de intervenção sobre os ambientes, processos e organização do trabalho com poder de fiscalização no SUS.",
+          "Cobrar taxas e multas em dinheiro destinadas ao orçamento das empresas privadas.",
+          "Substituir os diagnósticos patológicos realizados pelos médicos assistentes."
+        ],
+        answer: 1,
+        hint: "Intervenção ativa nos ambientes geradores de risco à saúde pública.",
+        rationale: "A VISAT atua diretamente na transformação dos ambientes e processos de trabalho, investigando os riscos nos locais e exercendo a vigilância sanitária e epidemiológica no âmbito do SUS."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "O benefício previdenciário denominado Auxílio-Acidente (B36/B94) possui natureza indenizatória. Ele é concedido ao trabalhador quando:",
+        options: [
+          "O trabalhador se afasta por 5 dias com gripe comum.",
+          "Após a consolidação das lesões decorrentes de acidente de qualquer natureza, resultarem sequelas definitivas que impliquem redução da capacidade para o trabalho que habitualmente exercia.",
+          "O trabalhador completa 65 anos de idade sem nunca ter sofrido acidentes.",
+          "A empresa abre falência e não paga o aviso prévio."
+        ],
+        answer: 1,
+        hint: "Funciona como uma indenização paga junto com o salário quando o indivíduo fica com sequela definitiva.",
+        rationale: "O Auxílio-Acidente é pago como indenização quando o acidente deixa sequelas permanentes que reduzem a capacidade laborativa habitual. Por ser indenizatório, permite que o funcionário volte a trabalhar enquanto recebe o benefício."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "A notificação de Acidente de Trabalho com Exposição a Material Biológico (ex: perfuração por agulha contaminada) no SINAN deve ser registrada em qual periodicidade?",
+        options: [
+          "Imediata (até 24 horas).",
+          "Semanal.",
+          "Mensal.",
+          "Anual."
+        ],
+        answer: 1,
+        hint: "Periodicidade padrão da portaria nacional de notificações de acidentes biológicos não letais.",
+        rationale: "Conforme a lista nacional de notificação compulsória, o acidente com exposição a material biológico é de notificação compulsória com periodicidade SEMANAL no SINAN."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "Um motorista de ônibus sofreu um assalto com agressão física e fratura de rádio durante seu itinerário regular. Esse evento é classificado para fins legais e previdenciários como:",
+        options: [
+          "Doença degenerativa idiopática.",
+          "Acidente do Trabalho Típico / Por Equiparação.",
+          "Crime comum sem qualquer direito previdenciário ou vínculo trabalhista.",
+          "Falta injustificada ao serviço."
+        ],
+        answer: 1,
+        hint: "Agressão sofrida no local e horário de trabalho equipara-se ao acidente laboral.",
+        rationale: "O Art. 21 da Lei 8.213/91 equipara ao acidente de trabalho o acidente sofrido no local e horário de trabalho decorrente de ato de agressão ou sabotagem praticado por terceiros."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "Ao atender um paciente com diagnóstico confirmed de LER/DORT decorrente de sua atividade industrial, qual o papel do médico do trabalho ou médico assistente do SUS quanto ao laudo?",
+        options: [
+          "Apenas prescrever analgésicos e proibir o paciente de retornar ao SUS.",
+          "Atestar o nexo causal/ocupacional, fornecer laudo médico detalhado, emitir/solicitar a emissão da CAT e notificar o agravo no SINAN.",
+          "Orientar o trabalhador a ocultar a informação de seu chefe.",
+          "Encaminhar o paciente imediatamente para demissão sem exames."
+        ],
+        answer: 1,
+        hint: "Combinação de conduta clínica, epidemiológica (SINAN) e previdenciária (CAT).",
+        rationale: "O profissional de saúde deve estabelecer o nexo ocupacional, registrar o agravo no SINAN para a vigilância, emitir laudo conclusivo e subsidiar a emissão da CAT."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "O financiamento do benefício por incapacidade acidentária pelo INSS é custeado pelas empresas através de uma alíquota variável denominada RAT (Risco Ambiental do Trabalho), ajustada pelo FAP. A sigla FAP significa:",
+        options: [
+          "Fator Acidentário de Prevenção.",
+          "Fundo de Aposentadoria Patronal.",
+          "Frequência Absoluta de Periculosidade.",
+          "Fiscalização Ambiental Preventiva."
+        ],
+        answer: 0,
+        hint: "Multiplicador ($0,5$ a $2,0$) que reduz ou aumenta o imposto conforme o histórico de acidentes da empresa.",
+        rationale: "O Fator Acidentário de Prevenção (FAP) bonifica empresas que registram menos acidentes (reduzindo o RAT) e penaliza aquelas com altos índices de acidentes."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "No âmbito do SUS, os CERESTs podem ser organizados estruturalmente em dois níveis abrangentes de cobertura territorial:",
+        options: [
+          "CEREST Municipal de Bairro e CEREST Internacional.",
+          "CEREST Estadual e CEREST Regional.",
+          "CEREST Escolar e CEREST Privado.",
+          "CEREST Marítimo e CEREST Aéreo."
+        ],
+        answer: 1,
+        hint: "Rede distribuída por estados e por regiões de saúde com abrangência de múltiplos municípios.",
+        rationale: "Os CERESTs organizam-se em CERESTs Estaduais e CERESTs Regionais (que cobrem agrupamentos de municípios daquela região de saúde)."
+      },
+      {
+        modId: 5,
+        modName: "RENAST, CEREST e INSS",
+        question: "O acidente sofrido pelo empregado no percurso entre a sua residência e o local de trabalho (Acidente de Trajeto):",
+        options: [
+          "Deixou de existir no Código Penal e é proibido de ser atendido no SUS.",
+          "É equiparado legalmente ao Acidente de Trabalho para fins previdenciários de emissão de CAT e concessão de B91.",
+          "Gera apenas demissão imediata por justa causa.",
+          "Exige que a vítima pague o combustível da ambulância."
+        ],
+        answer: 1,
+        hint: "Mantido o entendimento da equiparação conforme a Lei 8.213/91.",
+        rationale: "O acidente ocorrido no deslocamento residência-trabalho-residência é equiparado ao acidente de trabalho nos termos da legislação previdenciária nacional."
+      },
+
+      // === MÓDULO 6: SILICOSE E ASBESTOS (15 QUESTÕES) ===
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "A Silicose e a Asbestose pertencem ao grupo das Pneumoconioses. A definição clássica de Pneumoconiose é:",
+        options: [
+          "Infecção bacteriana aguda dos brônquios por Streptococcus pneumoniae.",
+          "Acúmulo de poeiras minerais ou metálicas inaláveis nos pulmões e a reação tisular à sua presença.",
+          "Espasmo alérgico reversível provocado por polens e poeira doméstica.",
+          "Destruição idiopática das cordas vocais por uso excessivo da voz."
+        ],
+        answer: 1,
+        hint: "Inalação de poeiras inorgânicas/minerais que se depositam no parênquima pulmonar.",
+        rationale: "Pneumoconiose é a patologia parenquimatosa pulmonar resultante da inalação e acúmulo de poeiras inorgânicas/minerais no parênquima pulmonar e da resposta fibrótica do tecido."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "Os Critérios de Schilling classificam as doenças em relação ao seu nexo causal com o trabalho. A Silicose enquadra-se em qual grupo de Schilling?",
+        options: [
+          "Schilling I (O trabalho é causa necessária / direta).",
+          "Schilling II (O trabalho é fator contributivo ou facilitador).",
+          "Schilling III (O trabalho é provocador ou agravador de doença preexistente).",
+          "Não possui enquadramento na classificação de Schilling."
+        ],
+        answer: 0,
+        hint: "Sem a exposição à sílica, a doença simplesmente não existe.",
+        rationale: "Schilling I reúne as doenças em que o trabalho é causa necessária (ex: Silicose, Asbestose, Saturnismo e acidentes de trabalho típicos)."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "A Silicose é provocada pela inalação de partículas respiráveis de Sílica Livre Cristalina ($\text{SiO}_2$). Quais ramos profissionais apresentam risco clássico para esta pneumoconiose?",
+        options: [
+          "Processamento de dados e digitação em escritórios.",
+          "Mineração subterrânea, corte de granito/mármore, jateamento de areia, cerâmica e vidro.",
+          "Fabricação de pães e confeitaria industrial.",
+          "Atendimento telefônico e recepção de hotéis."
+        ],
+        answer: 1,
+        hint: "Atividades de perfuração de rochas, jateamento e manipulação de minerais quartzosos.",
+        rationale: "Trabalhadores em mineração, corte de pedras (granito, quartzo), indústrias de cerâmica, fundições e jateamento de areia estão expostos à poeira de sílica cristalina."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "Qual o padrão radiológico clássico (Raio-X / TC de Tórax) característico da SILICOSE no seu estágio inicial e crônico?",
+        options: [
+          "Opacidades nodulares e micronodulares difusas predominantemente nos terços superiores (ápices) dos pulmões e linfonodos com calcificação em 'casca de ovo'.",
+          "Placas pleurais calcificadas isoladas no terço inferior próximo aos diafragmas.",
+          "Consolidação lobar aguda com broncograma aéreo único.",
+          "Ausência completa de alterações de imagem com tomografia normal."
+        ],
+        answer: 0,
+        hint: "A sílica afeta predominantemente os ápices pulmonares com nódulos.",
+        rationale: "A Silicose manifesta-se tipicamente com micronódulos fibrosos nos campos pulmonares superiores (ápices), podendo evoluir com linfonadopatia hilar com calcificação periférica ('casca de ovo' ou egg-shell)."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "Diferenciando o padrão de imagem: ao contrário da silicose, a ASBESTOSE (decorrente da inalação de fibras de amianto) manifesta-se radiologicamente por:",
+        options: [
+          "Nódulos apicales isolados de 10 cm com cavernas.",
+          "Opacidades parenquimatosas reticulares e espessamentos/placas pleurais difusas localizadas predominantemente nos campos pulmonares INFERIORES e bases.",
+          "Infiltrado em asas de borboleta de origem cardíaca.",
+          "Aumento volumétrico bolhoso dos ápices com enfisema pan-acinar."
+        ],
+        answer: 1,
+        hint: "As fibras de asbesto se depositam preferencialmente nas bases e na pleura.",
+        rationale: "A Asbestose acomete predominantemente as bases pulmonares (terços inferiores) com fibrose intersticial reticular e marcante presença de placas pleurais fibrosas/calcificadas."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "A neoplasia maligna primária da pleura e do peritônio highly agressiva, cuja ocorrência está associada de forma quase exclusiva à exposição ocupacional prévia ao Asbesto/Amianto, é o:",
+        options: [
+          "Carcinoma Espinocelular da Laringe.",
+          "Mesotelioma Maligno.",
+          "Adenocarcinoma Gastrointestinal.",
+          "Glioblastoma Multiforme."
+        ],
+        answer: 1,
+        hint: "Tumor maligno específico da membrana pleural ligado ao amianto.",
+        rationale: "O Mesotelioma é um tumor maligno raro e agressivo da pleura/peritônio cujo único fator etiológico bem estabelecido é a exposição pregressa às fibras de asbesto/amianto."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "Em relação ao marco jurídico no Brasil, o Supremo Tribunal Federal (STF) decidiu sobre o Amianto / Asbesto que:",
+        options: [
+          "O uso do amianto crisotila é obrigatório em todas as telhas residenciais.",
+          "A extração, industrialização, comercialização e uso de todas as formas de amianto (incluindo a variedade Crisotila) são proibidas em todo o território nacional.",
+          "O amianto foi liberado exclusivamente para fabricação de vestuário infantil.",
+          "Apenas o amianto importado da Ásia é proibido, sendo o nacional totalmente isento de riscos."
+        ],
+        answer: 1,
+        hint: "Julgamento histórico do STF banindo o mineral pelo seu alto potencial carcinogênico.",
+        rationale: "O STF declarou inconstitucional o uso de qualquer tipo de amianto/asbesto no Brasil devido à sua nocividade à saúde e comprovado potencial carcinogênico."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "A Silicose aumenta significativamente o risco do trabalhador desenvolver uma complicação infecciosa grave causada por Mycobacterium. Esta associação patológica é chamada de:",
+        options: [
+          "Silicossarcoma.",
+          "Silicotuberculose.",
+          "Silicose fúngica blastomicótica.",
+          "Síndrome de Kartagener."
+        ],
+        answer: 1,
+        hint: "A sílica compromete os macrófagos alveolares, facilitando a infecção por tuberculose.",
+        rationale: "A sílica inativada e destrói os macrófagos alveolares, paralisando a imunidade celular local e multiplicando por várias vezes o risco de Tuberculose (Silicotuberculose)."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "Quais são os três elementos fundamentais e indispensáveis para o DIAGNÓSTICO conclusivo das Pneumoconioses (Silicose e Asbestose)?",
+        options: [
+          "História de exposição ocupacional consistente + Exame de Imagem (Raio-X de Tórax no padrão OIT ou TC) + Ausência de outra causa explicativa.",
+          "Biópsia renal aberta + Dosagem de ureia + Espirometria normal.",
+          "Teste de alergia cutânea + Exame de fezes + Audiometria tonal.",
+          "Eletroencefalograma + Dosagem de chumbo + Ressonância da coluna."
+        ],
+        answer: 0,
+        hint: "A combinação da anamnese ocupacional detalhada com alteração de imagem compatível.",
+        rationale: "O diagnóstico baseia-se na história ocupacional comprovada de exposição a poeiras minerais, exames de imagem sugestivos e exclusão de diagnósticos diferenciais."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "A Espirometria (Prova de Função Pulmonar) nas fases avançadas da Silicose e da Asbestose revela tipicamente um distúrbio ventilatório com padrão:",
+        options: [
+          "Obstrutivo puro responsivo a broncodilatador.",
+          "Restritivo (com redução da Capacidade Vital Forçada - CVF) ou Misto.",
+          "Totalmente normal em 100% dos casos terminais.",
+          "Alcalose respiratória compensada."
+        ],
+        answer: 1,
+        hint: "A fibrose impede a expansão adequada do parênquima rígido.",
+        rationale: "A fibrose intersticial reduz a complacência pulmonar, gerando um padrão funcional Restritivo (ou misto nas fases avançadas com grande destruição anatômica)."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "A Silicose Aguda é uma forma rara e grave da doença que ocorre após meses a poucos anos de exposição massiva a poeiras minerais recém-fraturadas. Seu quadro histopatológico caracteriza-se por:",
+        options: [
+          "Presença de placas calcificadas apenas na gordura abdominal.",
+          "Proteinose Alveolar (preenchimento dos alvéolos por material lipoproteináceo PAS-positivo).",
+          "Atrofia muscular bicipital grave sem acometimento dos pulmões.",
+          "Aumento da taxa de linfócitos T e ausência de macrófagos."
+        ],
+        answer: 1,
+        hint: "Semelhante à proteinose alveolar idiopática, com acúmulo de exsudato lipoproteico nos alvéolos.",
+        rationale: "A silicose aguda (ou silico-proteinose) resulta da exposição massiva e fulminante, levando ao preenchimento alveolar por exsudato lipoproteináceo rico em surfactante e macrófagos mortos."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "Em relação ao tratamento curativo farmacológico da Silicose e da Asbestose já instaladas, é correto afirmar que:",
+        options: [
+          "São totalmente curáveis com uso de antibióticos por 14 dias.",
+          "Não existe tratamento farmacológico capaz de reverter a fibrose pulmonar; a conduta baseia-se no afastamento imediato da exposição, suporte sintomático e prevenção de complicações.",
+          "O tratamento de escolha é a quimioterapia com cisplatina via oral.",
+          "A cura é obtida realizando lavagens nasais com soro fisiológico morno."
+        ],
+        answer: 1,
+        hint: "A fibrose e as cicatrizes do tecido pulmonar são irreversíveis.",
+        rationale: "A fibrose pneumoconiótica é irreversível e progressiva. As medidas clínicas focam em afastar o trabalhador do risco, tratar infecções (TB), vacinar e reabilitar a função respiratória."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "A classificação internacional da OIT (Organização Internacional do Trabalho) para Radiografias de Pneumoconioses padroniza a leitura de exames de imagem avaliando principalmente:",
+        options: [
+          "O tamanho do coração e a espessura da aorta.",
+          "A profusão de pequenas opacidades, presença de grandes opacidades e anomalias pleurais.",
+          "A quantidade de gordura subcutânea no tórax.",
+          "O grau de osteoporose das costelas."
+        ],
+        answer: 1,
+        hint: "Classifica a densidade de nódulos (profusão) e alterações da pleura.",
+        rationale: "A padronização OIT avalia a profusão de pequenas opacidades (de 0/- a 3/+), presença de opacidades grandes (A, B, C) e alterações na pleura (placas/espessamentos)."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "Qual medida de controle coletivo (Engenharia) é considerada a mais eficaz no combate à poeira de sílica em corte de pedras e mineração para impedir a aspiração da poeira respirável?",
+        options: [
+          "Uso exclusivo de máscara cirúrgica de papel.",
+          "Uso de processos umectados (trabalho a úmido/corte com água) e sistemas de exaustão localizada.",
+          "Fornecimento de leite de vaca integral no final do expediente.",
+          "Varredura a seco do piso da fábrica durante o expediente."
+        ],
+        answer: 1,
+        hint: "A água suprime a poeira na fonte antes que ela se disperse no ar.",
+        rationale: "Trabalhar a úmido (corte e furação umectados) e utilizar exaustores enclausurados evita que os microcristais de sílica fiquem suspensos no ar."
+      },
+      {
+        modId: 6,
+        modName: "Silicose e Asbestos",
+        question: "Trabalhadores expostos ao Asbesto que também são fumantes ativos apresentam um risco de desenvolver Câncer de Pulmão (Carcinoma Broncogênico) que é:",
+        options: [
+          "Menor do que o risco de quem não fuma e não trabalha com asbesto.",
+          "Multiplicado sinergicamente (o risco de câncer de pulmão aumenta de forma multiplicativa pela junção do fumo + asbesto).",
+          "Idêntico ao risco da população geral não exposta.",
+          "Anulado, pois o alcatrão do cigarro encapa as fibras de asbesto."
+        ],
+        answer: 1,
+        hint: "Combinação sinérgica multiplicativa highly carcinogênica.",
+        rationale: "A combinação do tabagismo com a exposição ao asbesto exerce um efeito sinérgico multiplicativo extremamente elevado para o surgimento do câncer broncogênico de pulmão."
+      }
+    ];
+
+    // --- ESTADO DA APLICAÇÃO ---
+    let selectedModuleFilter = 'all';
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let userAnswers = [];
+    let startTime = null;
+
+    // --- ELEMENTOS DOM ---
+    const screens = {
+      dashboard: document.getElementById('screen-dashboard'),
+      quiz: document.getElementById('screen-quiz'),
+      report: document.getElementById('screen-report')
+    };
+
+    const stats = {
+      container: document.getElementById('quiz-stats'),
+      progress: document.getElementById('stat-progress'),
+      score: document.getElementById('stat-score')
+    };
+
+    // --- SELEÇÃO DE MÓDULO ---
+    function selectModule(modId) {
+      selectedModuleFilter = modId;
+      document.querySelectorAll('.module-card').forEach(card => {
+        card.classList.remove('border-indigo-600', 'bg-indigo-50/60', 'dark:bg-indigo-950/40');
+        card.classList.add('border-slate-200', 'dark:border-slate-700', 'bg-white', 'dark:bg-slate-800');
+      });
+
+      const selectedCard = document.getElementById(modId === 'all' ? 'card-mod-all' : `card-mod-${modId}`);
+      if(selectedCard) {
+        selectedCard.classList.remove('border-slate-200', 'dark:border-slate-700', 'bg-white', 'dark:bg-slate-800');
+        selectedCard.classList.add('border-indigo-600', 'bg-indigo-50/60', 'dark:bg-indigo-950/40');
+      }
+    }
+
+    // --- INICIAR SIMULADO ---
+    function startQuiz() {
+      if (selectedModuleFilter === 'all') {
+        currentQuestions = [...rawQuestions];
+      } else {
+        currentQuestions = rawQuestions.filter(q => q.modId === selectedModuleFilter);
+      }
+
+      currentIndex = 0;
+      userAnswers = [];
+      startTime = new Date();
+
+      screens.dashboard.classList.add('hidden');
+      screens.report.classList.add('hidden');
+      screens.quiz.classList.remove('hidden');
+      stats.container.classList.remove('hidden');
+
+      updateStats();
+      renderQuestion();
+    }
+
+    // --- RENDERIZAR QUESTÃO ---
+    function renderQuestion() {
+      const q = currentQuestions[currentIndex];
+
+      document.getElementById('question-module-tag').textContent = `Módulo ${q.modId}`;
+      document.getElementById('question-number-display').textContent = `${currentIndex + 1}/${currentQuestions.length}`;
+      
+      const pct = ((currentIndex) / currentQuestions.length) * 100;
+      document.getElementById('progress-bar-fill').style.width = `${pct}%`;
+
+      document.getElementById('question-text').textContent = `${currentIndex + 1}. ${q.question}`;
+
+      document.getElementById('hint-container').classList.add('hidden');
+      document.getElementById('hint-text').textContent = q.hint;
+
+      const rationaleBox = document.getElementById('rationale-container');
+      rationaleBox.classList.add('hidden');
+      rationaleBox.className = "hidden p-4 rounded-xl border mb-4 text-xs";
+
+      document.getElementById('btn-next').classList.add('hidden');
+      document.getElementById('btn-hint').classList.remove('hidden');
+
+      const optionsContainer = document.getElementById('options-container');
+      optionsContainer.innerHTML = '';
+
+      q.options.forEach((optText, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "touch-btn w-full text-left p-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-400 bg-white dark:bg-slate-800 active:bg-slate-50 dark:active:bg-slate-700 transition flex items-start space-x-2.5 text-slate-800 dark:text-slate-100 text-xs font-medium";
+        btn.onclick = () => handleAnswer(idx);
+        
+        const letter = String.fromCharCode(65 + idx);
+        btn.innerHTML = `
+          <span class="w-6 h-6 flex-shrink-0 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center text-[11px] font-bold text-slate-600 dark:text-slate-300 mt-0.5">
+            ${letter}
+          </span>
+          <span class="leading-relaxed flex-grow">${optText}</span>
+        `;
+        optionsContainer.appendChild(btn);
+      });
+
+      // Rolar suavemente para o topo do ecrã
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- PROCESSAR RESPOSTA ---
+    function handleAnswer(selectedIdx) {
+      const q = currentQuestions[currentIndex];
+      const isCorrect = selectedIdx === q.answer;
+
+      userAnswers.push({
+        question: q,
+        selectedOpt: selectedIdx,
+        isCorrect: isCorrect
+      });
+
+      const optionButtons = document.getElementById('options-container').children;
+      for (let i = 0; i < optionButtons.length; i++) {
+        const btn = optionButtons[i];
+        btn.onclick = null;
+
+        if (i === q.answer) {
+          btn.className = "w-full text-left p-3.5 rounded-xl border-2 border-teal-500 bg-teal-50 dark:bg-teal-950/40 text-teal-900 dark:text-teal-200 font-semibold flex items-start space-x-2.5 text-xs";
+          btn.querySelector('span').className = "w-6 h-6 flex-shrink-0 bg-teal-600 text-white rounded-lg flex items-center justify-center text-[11px] font-bold mt-0.5";
+        } else if (i === selectedIdx && !isCorrect) {
+          btn.className = "w-full text-left p-3.5 rounded-xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-semibold flex items-start space-x-2.5 text-xs";
+          btn.querySelector('span').className = "w-6 h-6 flex-shrink-0 bg-rose-600 text-white rounded-lg flex items-center justify-center text-[11px] font-bold mt-0.5";
+        } else {
+          btn.className = "w-full text-left p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 opacity-40 text-slate-500 dark:text-slate-400 flex items-start space-x-2.5 text-xs";
+        }
+      }
+
+      const rationaleBox = document.getElementById('rationale-container');
+      const rationaleHeader = document.getElementById('rationale-header');
+      const rationaleBody = document.getElementById('rationale-body');
+
+      rationaleBox.classList.remove('hidden');
+      if (isCorrect) {
+        rationaleBox.classList.add('bg-teal-50', 'dark:bg-teal-950/40', 'border-teal-200', 'dark:border-teal-800', 'text-teal-900', 'dark:text-teal-200');
+        rationaleHeader.innerHTML = `<i class="fa-solid fa-circle-check text-teal-600 text-base"></i><span>Correto!</span>`;
+      } else {
+        rationaleBox.classList.add('bg-rose-50', 'dark:bg-rose-950/40', 'border-rose-200', 'dark:border-rose-800', 'text-rose-900', 'dark:text-rose-200');
+        rationaleHeader.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-600 text-base"></i><span>Incorreto</span>`;
+      }
+
+      rationaleBody.innerHTML = `
+        <p class="font-semibold text-slate-800 dark:text-slate-200">Justificativa:</p>
+        <p>${q.rationale}</p>
+      `;
+
+      document.getElementById('btn-hint').classList.add('hidden');
+      document.getElementById('hint-container').classList.add('hidden');
+      document.getElementById('btn-next').classList.remove('hidden');
+
+      updateStats();
+    }
+
+    // --- EXIBIR DICA ---
+    function toggleHint() {
+      const hintBox = document.getElementById('hint-container');
+      hintBox.classList.toggle('hidden');
+    }
+
+    // --- PRÓXIMA QUESTÃO ---
+    function nextQuestion() {
+      currentIndex++;
+      if (currentIndex < currentQuestions.length) {
+        renderQuestion();
+      } else {
+        finishQuiz();
+      }
+    }
+
+    // --- ATUALIZAR ESTATÍSTICAS ---
+    function updateStats() {
+      const total = userAnswers.length;
+      const correct = userAnswers.filter(a => a.isCorrect).length;
+
+      stats.progress.textContent = `${total}/${currentQuestions.length}`;
+      stats.score.textContent = correct;
+    }
+
+    // --- FINALIZAR SIMULADO & EXIBIR RELATÓRIO ---
+    function finishQuiz() {
+      screens.quiz.classList.add('hidden');
+      stats.container.classList.add('hidden');
+      screens.report.classList.remove('hidden');
+
+      const endTime = new Date();
+      const totalSeconds = Math.round((endTime - startTime) / 1000);
+      const avgSeconds = Math.round(totalSeconds / userAnswers.length);
+
+      const totalCorrect = userAnswers.filter(a => a.isCorrect).length;
+      const pctGeral = Math.round((totalCorrect / userAnswers.length) * 100);
+
+      document.getElementById('report-percentage').textContent = `${pctGeral}%`;
+      document.getElementById('report-correct').textContent = `${totalCorrect} / ${userAnswers.length}`;
+      document.getElementById('report-time').textContent = `${avgSeconds}s`;
+
+      const modulesMap = {
+        1: { name: "1. Normas Regulamentadoras", total: 0, correct: 0 },
+        2: { name: "2. Doenças e Agravos", total: 0, correct: 0 },
+        3: { name: "3. Ergonomia e Toxicologia", total: 0, correct: 0 },
+        4: { name: "4. Contexto Organizacional", total: 0, correct: 0 },
+        5: { name: "5. RENAST, CEREST e INSS", total: 0, correct: 0 },
+        6: { name: "6. Silicose e Asbestos", total: 0, correct: 0 }
+      };
+
+      userAnswers.forEach(ans => {
+        const mId = ans.question.modId;
+        if (modulesMap[mId]) {
+          modulesMap[mId].total++;
+          if (ans.isCorrect) modulesMap[mId].correct++;
+        }
+      });
+
+      const breakdownContainer = document.getElementById('module-breakdown-list');
+      breakdownContainer.innerHTML = '';
+
+      const weakModules = [];
+
+      Object.keys(modulesMap).forEach(mId => {
+        const mod = modulesMap[mId];
+        if (mod.total > 0) {
+          const modPct = Math.round((mod.correct / mod.total) * 100);
+          
+          if (modPct < 70) {
+            weakModules.push({ name: mod.name, pct: modPct });
+          }
+
+          let barColor = "bg-teal-500";
+          if (modPct < 50) barColor = "bg-rose-500";
+          else if (modPct < 70) barColor = "bg-amber-500";
+
+          const item = document.createElement('div');
+          item.className = "p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700";
+          item.innerHTML = `
+            <div class="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
+              <span class="truncate max-w-[200px]">${mod.name}</span>
+              <span class="${modPct >= 70 ? 'text-teal-600 dark:text-teal-400' : 'text-rose-600 dark:text-rose-400'}">${mod.correct}/${mod.total} (${modPct}%)</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+              <div class="${barColor} h-full" style="width: ${modPct}%"></div>
+            </div>
+          `;
+          breakdownContainer.appendChild(item);
+        }
+      });
+
+      const recoContainer = document.getElementById('recommendations-list');
+      recoContainer.innerHTML = '';
+
+      if (weakModules.length === 0) {
+        recoContainer.innerHTML = `
+          <li><strong>Excelente aproveitamento!</strong> Obteve um rendimento superior a 70% em todas as áreas avaliadas. Mantém a revisão contínua das NRs e portarias.</li>
+        `;
+      } else {
+        weakModules.forEach(wm => {
+          let recText = "";
+          if (wm.name.includes("Normas Regulamentadoras")) {
+            recText = "Revisa PGR (NR-1), SESMT (NR-4), insalubridade/periculosidade (NR-15/16) e NR-32.";
+          } else if (wm.name.includes("Doenças e Agravos")) {
+            recText = "Reforça o quadro de Saturnismo (Chumbo), Hidrargirismo (Mercúrio), PAIR e LER/DORT.";
+          } else if (wm.name.includes("Ergonomia e Toxicologia")) {
+            recText = "Aprofunda a biomecânica da coluna (L4-S1), equação NIOSH e limites VET/LT e IBE.";
+          } else if (wm.name.includes("Contexto Organizacional")) {
+            recText = "Revê Segurança Psicológica, as 3 dimensões do Burnout (CID-11), Assédio e NR-5.";
+          } else if (wm.name.includes("RENAST")) {
+            recText = "Revisa Notificação Compulsória (24h vs Semanal), emissão da CAT e B31 vs B91.";
+          } else if (wm.name.includes("Silicose")) {
+            recText = "Revisa a diferença radiológica da Silicose (ápices) e Asbestose (bases/pleura) e o veto do STF ao Amianto.";
+          }
+
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>Revisar ${wm.name}:</strong> ${recText}`;
+          recoContainer.appendChild(li);
+        });
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- REINICIAR ---
+    function resetToDashboard() {
+      screens.report.classList.add('hidden');
+      screens.quiz.classList.add('hidden');
+      stats.container.classList.add('hidden');
+      screens.dashboard.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
